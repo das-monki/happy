@@ -111,6 +111,9 @@ export const ca: TranslationStructure = {
     delete: "Elimina",
     optional: "Opcional",
     saving: "Desant...",
+    edit: "Editar",
+    preview: "Previsualització",
+    noContent: "Res per previsualitzar",
   },
 
   profile: {

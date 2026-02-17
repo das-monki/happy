@@ -113,6 +113,9 @@ export const zhHans: TranslationStructure = {
     delete: "删除",
     optional: "可选的",
     saving: "保存中...",
+    edit: "编辑",
+    preview: "预览",
+    noContent: "没有可预览的内容",
   },
 
   profile: {

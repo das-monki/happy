@@ -113,6 +113,9 @@ export const en = {
     delete: "Delete",
     optional: "optional",
     saving: "Saving...",
+    edit: "Edit",
+    preview: "Preview",
+    noContent: "Nothing to preview",
   },
 
   profile: {

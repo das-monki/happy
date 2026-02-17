@@ -111,6 +111,9 @@ export const it: TranslationStructure = {
     optional: "opzionale",
     saveAs: "Salva con nome",
     saving: "Salvataggio...",
+    edit: "Modifica",
+    preview: "Anteprima",
+    noContent: "Niente da visualizzare",
   },
 
   profile: {

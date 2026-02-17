@@ -114,6 +114,9 @@ export const ja: TranslationStructure = {
     optional: "任意",
     saveAs: "名前を付けて保存",
     saving: "保存中...",
+    edit: "編集",
+    preview: "プレビュー",
+    noContent: "プレビューする内容がありません",
   },
 
   profile: {

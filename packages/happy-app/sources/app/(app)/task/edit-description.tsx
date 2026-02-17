@@ -1,13 +1,14 @@
 import * as React from 'react';
-import { TextInput, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useTask } from '@/sync/storage';
 import { sync } from '@/sync/sync';
 import { useUnistyles } from 'react-native-unistyles';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { t } from '@/text';
 
 /**
- * Full-screen editor for the task description.
+ * Full-screen markdown editor for the task description.
  * Auto-saves on back navigation (unmount).
  */
 const EditDescriptionScreen = React.memo(function EditDescriptionScreen() {
@@ -33,33 +34,13 @@ const EditDescriptionScreen = React.memo(function EditDescriptionScreen() {
     }, [taskId]);
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1, backgroundColor: theme.colors.groupped.background }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={100}
-        >
-            <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"
-            >
-                <TextInput
-                    value={text}
-                    onChangeText={setText}
-                    placeholder={t('tasks.descriptionPlaceholder')}
-                    placeholderTextColor={theme.colors.textSecondary}
-                    style={{
-                        flex: 1,
-                        fontSize: 16,
-                        color: theme.colors.text,
-                        padding: 16,
-                        textAlignVertical: 'top',
-                    }}
-                    multiline
-                    autoFocus
-                    scrollEnabled={false}
-                />
-            </ScrollView>
-        </KeyboardAvoidingView>
+        <View style={{ flex: 1, backgroundColor: theme.colors.groupped.background }}>
+            <MarkdownEditor
+                value={text}
+                onChangeText={setText}
+                placeholder={t('tasks.descriptionPlaceholder')}
+            />
+        </View>
     );
 });
 

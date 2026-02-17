@@ -124,6 +124,9 @@ export const ru: TranslationStructure = {
     delete: "Удалить",
     optional: "необязательно",
     saving: "Сохранение...",
+    edit: "Редактировать",
+    preview: "Предпросмотр",
+    noContent: "Нечего показать",
   },
 
   connect: {

@@ -111,6 +111,9 @@ export const es: TranslationStructure = {
     delete: "Eliminar",
     optional: "opcional",
     saving: "Guardando...",
+    edit: "Editar",
+    preview: "Vista previa",
+    noContent: "Nada que previsualizar",
   },
 
   profile: {

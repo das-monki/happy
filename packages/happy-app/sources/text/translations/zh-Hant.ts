@@ -113,6 +113,9 @@ export const zhHant: TranslationStructure = {
     delete: "刪除",
     optional: "選填",
     saving: "儲存中...",
+    edit: "編輯",
+    preview: "預覽",
+    noContent: "沒有可預覽的內容",
   },
 
   profile: {

@@ -124,6 +124,9 @@ export const pl: TranslationStructure = {
     delete: "Usuń",
     optional: "opcjonalnie",
     saving: "Zapisywanie...",
+    edit: "Edytuj",
+    preview: "Podgląd",
+    noContent: "Brak treści do podglądu",
   },
 
   profile: {
