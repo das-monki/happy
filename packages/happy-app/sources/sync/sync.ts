@@ -1939,6 +1939,63 @@ class Sync {
                     // Don't crash on settings sync errors, just log
                 }
             }
+        } else if (updateData.body.t === 'new-machine') {
+            const machineUpdate = updateData.body;
+            const machineId = machineUpdate.machineId;
+
+            // Initialize encryption for the new machine
+            if (machineUpdate.dataEncryptionKey) {
+                const decryptedKey = await this.encryption.decryptEncryptionKey(machineUpdate.dataEncryptionKey);
+                if (decryptedKey) {
+                    const machineKeysMap = new Map<string, Uint8Array | null>();
+                    machineKeysMap.set(machineId, decryptedKey);
+                    this.machineDataKeys.set(machineId, decryptedKey);
+                    await this.encryption.initializeMachines(machineKeysMap);
+                }
+            } else {
+                const machineKeysMap = new Map<string, Uint8Array | null>();
+                machineKeysMap.set(machineId, null);
+                await this.encryption.initializeMachines(machineKeysMap);
+            }
+
+            const machineEncryption = this.encryption.getMachineEncryption(machineId);
+
+            // Decrypt metadata if present
+            let metadata = null;
+            let metadataVersion = machineUpdate.metadataVersion;
+            if (machineUpdate.metadata && machineEncryption) {
+                try {
+                    metadata = await machineEncryption.decryptMetadata(machineUpdate.metadataVersion, machineUpdate.metadata);
+                } catch (error) {
+                    console.error(`Failed to decrypt new machine metadata for ${machineId}:`, error);
+                }
+            }
+
+            // Decrypt daemonState if present
+            let daemonState = null;
+            let daemonStateVersion = machineUpdate.daemonStateVersion;
+            if (machineUpdate.daemonState && machineEncryption) {
+                try {
+                    daemonState = await machineEncryption.decryptDaemonState(machineUpdate.daemonStateVersion, machineUpdate.daemonState);
+                } catch (error) {
+                    console.error(`Failed to decrypt new machine daemonState for ${machineId}:`, error);
+                }
+            }
+
+            const newMachine: Machine = {
+                id: machineId,
+                seq: machineUpdate.seq,
+                createdAt: machineUpdate.createdAt,
+                updatedAt: machineUpdate.updatedAt,
+                active: machineUpdate.active,
+                activeAt: machineUpdate.activeAt,
+                metadata,
+                metadataVersion,
+                daemonState,
+                daemonStateVersion
+            };
+
+            storage.getState().applyMachines([newMachine]);
         } else if (updateData.body.t === 'update-machine') {
             const machineUpdate = updateData.body;
             const machineId = machineUpdate.machineId;  // Changed from .id to .machineId

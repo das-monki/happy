@@ -68,6 +68,22 @@ export const VersionedMachineEncryptedValueSchema = z.object({
 });
 export type VersionedMachineEncryptedValue = z.infer<typeof VersionedMachineEncryptedValueSchema>;
 
+export const NewMachineBodySchema = z.object({
+  t: z.literal('new-machine'),
+  machineId: z.string(),
+  seq: z.number(),
+  metadata: z.string(),
+  metadataVersion: z.number(),
+  daemonState: z.string().nullable(),
+  daemonStateVersion: z.number(),
+  dataEncryptionKey: z.string().nullable(),
+  active: z.boolean(),
+  activeAt: z.number(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+export type NewMachineBody = z.infer<typeof NewMachineBodySchema>;
+
 export const UpdateMachineBodySchema = z.object({
   t: z.literal('update-machine'),
   machineId: z.string(),
@@ -81,6 +97,7 @@ export type UpdateMachineBody = z.infer<typeof UpdateMachineBodySchema>;
 export const CoreUpdateBodySchema = z.discriminatedUnion('t', [
   UpdateNewMessageBodySchema,
   UpdateSessionBodySchema,
+  NewMachineBodySchema,
   UpdateMachineBodySchema,
 ]);
 export type CoreUpdateBody = z.infer<typeof CoreUpdateBodySchema>;
@@ -102,6 +119,9 @@ export type ApiUpdateNewMessage = UpdateNewMessageBody;
 
 export const ApiUpdateSessionStateSchema = UpdateSessionBodySchema;
 export type ApiUpdateSessionState = UpdateSessionBody;
+
+export const ApiNewMachineSchema = NewMachineBodySchema;
+export type ApiNewMachine = NewMachineBody;
 
 export const ApiUpdateMachineStateSchema = UpdateMachineBodySchema;
 export type ApiUpdateMachineState = UpdateMachineBody;

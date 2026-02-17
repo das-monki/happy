@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
     ApiMessageSchema,
+    ApiNewMachineSchema,
     ApiUpdateMachineStateSchema,
     ApiUpdateNewMessageSchema,
     ApiUpdateSessionStateSchema,
@@ -12,6 +13,7 @@ import { FeedBodySchema } from './feedTypes';
 
 export {
     ApiMessageSchema,
+    ApiNewMachineSchema,
     ApiUpdateMachineStateSchema,
     ApiUpdateNewMessageSchema,
     ApiUpdateSessionStateSchema,
@@ -111,14 +113,13 @@ export const ApiKvBatchUpdateSchema = z.object({
     }))
 });
 
-// Use a plain union here to avoid runtime discriminator extraction issues
-// when some schemas come from shared package exports.
-export const ApiUpdateSchema = z.union([
+export const ApiUpdateSchema = z.discriminatedUnion('t', [
     ApiUpdateNewMessageSchema,
     ApiUpdateNewSessionSchema,
     ApiDeleteSessionSchema,
     ApiUpdateSessionStateSchema,
     ApiUpdateAccountSchema,
+    ApiNewMachineSchema,
     ApiUpdateMachineStateSchema,
     ApiNewArtifactSchema,
     ApiUpdateArtifactSchema,
