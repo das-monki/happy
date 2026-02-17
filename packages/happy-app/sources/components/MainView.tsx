@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useFriendRequests, useSocketStatus, useRealtimeStatus, useWaitingTasks } from '@/sync/storage';
+import { useSocketStatus, useRealtimeStatus, useWaitingTasks } from '@/sync/storage';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
 import { useIsTablet } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
@@ -21,7 +21,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
 import { isUsingCustomServer } from '@/sync/serverConfig';
-import { trackFriendsSearch } from '@/track';
 
 interface MainViewProps {
     variant: 'phone' | 'sidebar';
@@ -204,18 +203,7 @@ const HeaderRight = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
     }
 
     if (activeTab === 'inbox') {
-        return (
-            <Pressable
-                onPress={() => {
-                    trackFriendsSearch();
-                    router.push('/friends/search');
-                }}
-                hitSlop={15}
-                style={styles.headerButton}
-            >
-                <Ionicons name="person-add-outline" size={24} color={theme.colors.header.tint} />
-            </Pressable>
-        );
+        return null;
     }
 
     if (activeTab === 'settings') {
@@ -242,13 +230,12 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const sessionListViewData = useVisibleSessionListViewData();
     const isTablet = useIsTablet();
     const router = useRouter();
-    const friendRequests = useFriendRequests();
     const realtimeStatus = useRealtimeStatus();
     const waitingTasks = useWaitingTasks();
 
     // Tab state management
     // NOTE: Zen tab removed - the feature never got to a useful state
-    const [activeTab, setActiveTab] = React.useState<TabType>('sessions');
+    const [activeTab, setActiveTab] = React.useState<TabType>('inbox');
 
     const handleNewSession = React.useCallback(() => {
         router.push('/new');
