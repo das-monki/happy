@@ -45,6 +45,7 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
         <Item
             title={task.title || t('tasks.untitled')}
             subtitle={task.description || undefined}
+            subtitleLines={1}
             rightElement={
                 <View style={styles.badgeRow}>
                     <View style={[styles.stateDot, { backgroundColor: badge.color }]} />

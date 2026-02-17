@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, TextInput, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTask, useTaskState, useTaskSessions, useAllMachines, useAllSessions } from '@/sync/storage';
 import { Item } from '@/components/Item';
@@ -212,6 +212,75 @@ const MachinePickerModal = React.memo(function MachinePickerModal({
     );
 });
 
+/**
+ * Modal for editing a single text field. Shows a title, text input, and save/cancel buttons.
+ */
+const TextEditModal = React.memo(function TextEditModal({
+    title,
+    value,
+    placeholder,
+    multiline,
+    onSave,
+    onClose,
+}: {
+    title: string;
+    value: string;
+    placeholder: string;
+    multiline?: boolean;
+    onSave: (value: string) => void;
+    onClose: () => void;
+}) {
+    const { theme } = useUnistyles();
+    const [text, setText] = React.useState(value);
+
+    return (
+        <View style={pickerStyles.container}>
+            <Text style={[pickerStyles.title, { color: theme.colors.text }]}>
+                {title}
+            </Text>
+            <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+                <TextInput
+                    value={text}
+                    onChangeText={setText}
+                    placeholder={placeholder}
+                    placeholderTextColor={theme.colors.textSecondary}
+                    style={{
+                        fontSize: 16,
+                        color: theme.colors.text,
+                        minHeight: multiline ? 100 : undefined,
+                        maxHeight: multiline ? 200 : undefined,
+                        textAlignVertical: multiline ? 'top' : undefined,
+                    }}
+                    multiline={multiline}
+                    autoFocus
+                />
+            </View>
+            <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
+                <Pressable
+                    onPress={onClose}
+                    style={({ pressed }) => [
+                        { flex: 1, paddingVertical: 14, borderRightWidth: 0.5, borderRightColor: theme.colors.divider, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                >
+                    <Text style={{ fontSize: 17, textAlign: 'center', color: '#007AFF' }}>
+                        {t('common.cancel')}
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => { onSave(text.trim()); onClose(); }}
+                    style={({ pressed }) => [
+                        { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                >
+                    <Text style={{ fontSize: 17, fontWeight: '600', textAlign: 'center', color: '#007AFF' }}>
+                        {t('common.save')}
+                    </Text>
+                </Pressable>
+            </View>
+        </View>
+    );
+});
+
 const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const task = useTask(id!);
@@ -415,6 +484,24 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         );
     }, [id, task, router]);
 
+    const handleEditTitle = React.useCallback(() => {
+        Modal.show({
+            component: TextEditModal,
+            props: {
+                title: t('tasks.fieldTitle'),
+                value: task?.title || '',
+                placeholder: t('tasks.titlePlaceholder'),
+                onSave: (value: string) => {
+                    sync.updateTaskHeader(id!, { title: value || null }).catch(e => console.error('Failed to persist title:', e));
+                },
+            },
+        });
+    }, [id, task?.title]);
+
+    const handleEditDescription = React.useCallback(() => {
+        router.push({ pathname: '/task/edit-description', params: { taskId: id! } });
+    }, [id, router]);
+
     if (!task) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
@@ -434,13 +521,14 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 <Item
                     title={t('tasks.fieldTitle')}
                     detail={task.title || t('tasks.untitled')}
+                    onPress={handleEditTitle}
                 />
-                {task.description && (
-                    <Item
-                        title={t('tasks.fieldDescription')}
-                        subtitle={task.description}
-                    />
-                )}
+                <Item
+                    title={t('tasks.fieldDescription')}
+                    subtitle={task.description || undefined}
+                    subtitleLines={2}
+                    onPress={handleEditDescription}
+                />
                 <Item
                     title={t('tasks.fieldState')}
                     detail={stateLabel(state)}

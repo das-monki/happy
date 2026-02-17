@@ -314,6 +314,14 @@ export default function RootLayout() {
                 }}
             />
             <Stack.Screen
+                name="task/edit-description"
+                options={{
+                    headerShown: true,
+                    headerTitle: t('tasks.fieldDescription'),
+                    headerBackTitle: t('common.back'),
+                }}
+            />
+            <Stack.Screen
                 name="new/pick/machine"
                 options={{
                     headerTitle: '',
