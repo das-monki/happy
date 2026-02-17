@@ -13,6 +13,15 @@ import { t } from '@/text';
 import { layout } from '@/components/layout';
 import type { DecryptedTask, TaskState } from '@/sync/taskTypes';
 
+/** Extract project name from the task directory (last path segment). */
+function projectName(task: DecryptedTask): string | null {
+    const dir = task.directory;
+    if (!dir) return null;
+    const trimmed = dir.endsWith('/') ? dir.slice(0, -1) : dir;
+    const last = trimmed.split('/').pop();
+    return last && last !== '~' ? last : null;
+}
+
 /**
  * Badge colors and labels for each derived task state.
  */
@@ -40,11 +49,12 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
     const router = useRouter();
     const state = useTaskState(task.id);
     const badge = getStateBadge(state, theme);
+    const project = projectName(task);
 
     return (
         <Item
             title={task.title || t('tasks.untitled')}
-            subtitle={task.description || undefined}
+            subtitle={project || task.description || undefined}
             subtitleLines={1}
             rightElement={
                 <View style={styles.badgeRow}>

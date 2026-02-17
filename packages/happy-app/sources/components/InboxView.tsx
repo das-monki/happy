@@ -16,6 +16,15 @@ import { Image } from 'expo-image';
 import { VoiceAssistantStatusBar } from './VoiceAssistantStatusBar';
 import type { DecryptedTask } from '@/sync/taskTypes';
 
+/** Extract project name from the task directory (last path segment). */
+function projectName(task: DecryptedTask): string | null {
+    const dir = task.directory;
+    if (!dir) return null;
+    const trimmed = dir.endsWith('/') ? dir.slice(0, -1) : dir;
+    const last = trimmed.split('/').pop();
+    return last && last !== '~' ? last : null;
+}
+
 /**
  * Row for a waiting task in the inbox.
  * Tapping navigates directly to the first idle session (most recently updated).
@@ -24,6 +33,7 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({ task }: { task: Decr
     const { theme } = useUnistyles();
     const router = useRouter();
     const linkedSessions = useTaskSessions(task.id);
+    const project = projectName(task);
 
     const handlePress = React.useCallback(() => {
         const idleSession = linkedSessions.find(s => !s.thinking);
@@ -37,7 +47,7 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({ task }: { task: Decr
     return (
         <Item
             title={task.title || t('tasks.untitled')}
-            subtitle={task.description || undefined}
+            subtitle={project || task.description || undefined}
             icon={<Ionicons name="time-outline" size={24} color="#FF9500" />}
             detail={t('tasks.stateWaiting')}
             detailStyle={{ color: '#FF9500' }}
