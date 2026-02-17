@@ -45,10 +45,13 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
         <Item
             title={task.title || t('tasks.untitled')}
             subtitle={task.description || undefined}
-            icon={
-                <View style={[styles.stateDot, { backgroundColor: badge.color }]} />
+            rightElement={
+                <View style={styles.badgeRow}>
+                    <View style={[styles.stateDot, { backgroundColor: badge.color }]} />
+                    <Text style={[styles.badgeLabel, { color: badge.color }]}>{badge.label}</Text>
+                </View>
             }
-            detail={badge.label}
+            dividerInset={-16}
             onPress={() => router.push(`/task/${task.id}`)}
         />
     );
@@ -116,9 +119,18 @@ const styles = StyleSheet.create((theme) => ({
         textAlign: 'center',
         lineHeight: 22,
     },
+    badgeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     stateDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    badgeLabel: {
+        ...Typography.default('regular'),
+        fontSize: 15,
     },
 }));
