@@ -324,7 +324,13 @@ export async function startDaemon(): Promise<void> {
         }
 
         // Final merge: Profile vars first, then auth (auth takes precedence to protect authentication)
-        let extraEnv = { ...profileEnv, ...authEnv };
+        let extraEnv: Record<string, string> = { ...profileEnv, ...authEnv };
+
+        // Pass taskId as environment variable so the CLI can link the session to the task
+        if (options.taskId) {
+          extraEnv.HAPPY_TASK_ID = options.taskId;
+        }
+
         logger.debug(`[DAEMON RUN] Final environment variable keys (before expansion) (${Object.keys(extraEnv).length}): ${Object.keys(extraEnv).join(', ')}`);
 
         // Expand ${VAR} references from daemon's process.env

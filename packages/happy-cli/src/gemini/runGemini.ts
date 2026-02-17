@@ -131,7 +131,7 @@ export async function runGemini(opts: {
     startedBy: opts.startedBy,
     sandbox: sandboxConfig,
   });
-  const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state });
+  const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state, taskId: process.env.HAPPY_TASK_ID });
 
   // Handle server unreachable case - create offline stub with hot reconnection
   let session: ApiSessionClient;
@@ -165,6 +165,7 @@ export async function runGemini(opts: {
     metadata,
     state,
     response,
+    taskId: process.env.HAPPY_TASK_ID,
     onSessionSwap: (newSession) => {
       // If we're processing a message, queue the swap for later
       // This prevents race conditions where session changes mid-processing

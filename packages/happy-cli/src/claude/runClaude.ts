@@ -116,7 +116,7 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         sandbox: sandboxConfig?.enabled ? sandboxConfig : null,
         dangerouslySkipPermissions,
     };
-    const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state });
+    const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state, taskId: process.env.HAPPY_TASK_ID });
 
     // Handle server unreachable case - run Claude locally with hot reconnection
     // Note: connectionState.notifyOffline() was already called by api.ts with error details
@@ -126,7 +126,7 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         const reconnection = startOfflineReconnection({
             serverUrl: configuration.serverUrl,
             onReconnected: async () => {
-                const resp = await api.getOrCreateSession({ tag: randomUUID(), metadata, state });
+                const resp = await api.getOrCreateSession({ tag: randomUUID(), metadata, state, taskId: process.env.HAPPY_TASK_ID });
                 if (!resp) throw new Error('Server unavailable');
                 const session = api.sessionSyncClient(resp);
                 const scanner = await createSessionScanner({

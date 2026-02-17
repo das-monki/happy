@@ -427,11 +427,12 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 .replace('{{description}}', task.description || '')
             : `${task.title || ''}${task.description ? '\n\n' + task.description : ''}`;
 
-        // Spawn a new session on the machine
+        // Spawn a new session on the machine, linked to this task
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
             directory: selectedDirectory,
             agent: 'claude',
+            taskId: id!,
         });
 
         if ('sessionId' in result && result.sessionId) {

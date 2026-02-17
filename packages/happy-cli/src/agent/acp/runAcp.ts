@@ -474,7 +474,7 @@ export async function runAcp(opts: {
     startedBy: opts.startedBy,
     sandbox: settings.sandboxConfig,
   });
-  const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state });
+  const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state, taskId: process.env.HAPPY_TASK_ID });
   if (response) {
     logAcp('muted', `Happy Session ID: ${response.id}`);
   }
@@ -487,6 +487,7 @@ export async function runAcp(opts: {
     metadata,
     state,
     response,
+    taskId: process.env.HAPPY_TASK_ID,
     onSessionSwap: (newSession) => {
       session = newSession;
       if (permissionHandler) {
