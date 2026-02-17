@@ -30,7 +30,7 @@ function stateLabel(state: TaskState): string {
 
 function stateColor(state: TaskState): string {
     switch (state) {
-        case 'running': return '#007AFF';
+        case 'running': return '#34C759';
         case 'waiting_input': return '#FF9500';
         case 'completed': return '#34C759';
         case 'failed': return '#FF3B30';

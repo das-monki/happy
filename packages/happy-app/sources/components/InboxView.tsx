@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWaitingTasks, useRealtimeStatus } from '@/sync/storage';
+import { useWaitingTasks, useRealtimeStatus, useTaskSessions } from '@/sync/storage';
 import { t } from '@/text';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
@@ -18,10 +18,21 @@ import type { DecryptedTask } from '@/sync/taskTypes';
 
 /**
  * Row for a waiting task in the inbox.
+ * Tapping navigates directly to the first idle session (most recently updated).
  */
 const WaitingTaskRow = React.memo(function WaitingTaskRow({ task }: { task: DecryptedTask }) {
     const { theme } = useUnistyles();
     const router = useRouter();
+    const linkedSessions = useTaskSessions(task.id);
+
+    const handlePress = React.useCallback(() => {
+        const idleSession = linkedSessions.find(s => !s.thinking);
+        if (idleSession) {
+            router.push(`/session/${idleSession.id}`);
+        } else {
+            router.push(`/task/${task.id}`);
+        }
+    }, [linkedSessions, task.id, router]);
 
     return (
         <Item
@@ -30,7 +41,7 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({ task }: { task: Decr
             icon={<Ionicons name="time-outline" size={24} color="#FF9500" />}
             detail={t('tasks.stateWaiting')}
             detailStyle={{ color: '#FF9500' }}
-            onPress={() => router.push(`/task/${task.id}`)}
+            onPress={handlePress}
         />
     );
 });

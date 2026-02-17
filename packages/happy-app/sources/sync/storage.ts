@@ -1271,25 +1271,26 @@ export function useTask(taskId: string): DecryptedTask | null {
 /**
  * Derive task state from linked sessions.
  * - completed/failed: explicitly set in task header
- * - running: at least one linked session is active
- * - waiting_input: all linked sessions are inactive (agent waiting)
+ * - running: at least one linked session is active AND thinking
+ * - waiting_input: has linked sessions but none are actively thinking
  * - pending: no linked sessions
+ *
+ * Uses `thinking` (not just `active`) because a session stays active as
+ * long as the CLI sends keep-alive messages, even when idle.
  */
 export function useTaskState(taskId: string): TaskState {
     return storage(useShallow((state) => {
         const task = state.tasks[taskId];
         if (!task) return 'pending';
 
-        // Explicit status in header takes precedence
         if (task.status === 'completed') return 'completed';
         if (task.status === 'failed') return 'failed';
 
-        // Find linked sessions
         const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === taskId);
         if (linkedSessions.length === 0) return 'pending';
 
-        const hasActive = linkedSessions.some(s => s.active);
-        if (hasActive) return 'running';
+        const hasThinking = linkedSessions.some(s => s.active && s.thinking);
+        if (hasThinking) return 'running';
 
         return 'waiting_input';
     }));
@@ -1309,8 +1310,9 @@ export function useTaskSessions(taskId: string): Session[] {
 }
 
 /**
- * Returns tasks where at least one linked session is waiting for user input (inactive).
- * Used by the inbox to show tasks that need attention.
+ * Returns tasks where all linked sessions are idle (active but not thinking).
+ * A session that is active + not thinking means the agent has finished and is
+ * waiting for user input. Used by the inbox.
  */
 export function useWaitingTasks(): DecryptedTask[] {
     return storage(useShallow((state) => {
@@ -1319,7 +1321,7 @@ export function useWaitingTasks(): DecryptedTask[] {
             if (task.status === 'completed' || task.status === 'failed') return false;
             const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === task.id);
             if (linkedSessions.length === 0) return false;
-            return linkedSessions.every(s => !s.active);
+            return linkedSessions.every(s => !s.thinking);
         }).sort((a, b) => b.updatedAt - a.updatedAt);
     }));
 }
