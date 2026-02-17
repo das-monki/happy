@@ -40,8 +40,8 @@ export const ru: TranslationStructure = {
     // Tab navigation labels
     inbox: "Входящие",
     tasks: "Задачи",
-    terminals: "Терминалы",
-    sessions: "Терминалы",
+    terminals: "Сессии",
+    sessions: "Сессии",
     settings: "Настройки",
   },
 

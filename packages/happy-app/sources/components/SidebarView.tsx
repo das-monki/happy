@@ -1,4 +1,4 @@
-import { useSocketStatus, useFriendRequests, useSettings } from '@/sync/storage';
+import { useSocketStatus, useFriendRequests, useSettings, useWaitingTasks } from '@/sync/storage';
 import * as React from 'react';
 import { Text, View, Pressable, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +13,6 @@ import { MainView } from './MainView';
 import { Image } from 'expo-image';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
-import { useInboxHasContent } from '@/hooks/useInboxHasContent';
 import { Ionicons } from '@expo/vector-icons';
 
 const stylesheet = StyleSheet.create((theme, runtime) => ({
@@ -89,7 +88,7 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
         position: 'absolute',
         top: -4,
         right: -4,
-        backgroundColor: theme.colors.status.error,
+        backgroundColor: '#FF9500',
         borderRadius: 8,
         minWidth: 16,
         height: 16,
@@ -118,15 +117,6 @@ const stylesheet = StyleSheet.create((theme, runtime) => ({
     statusDefault: {
         color: theme.colors.status.default,
     },
-    indicatorDot: {
-        position: 'absolute',
-        top: 0,
-        right: -2,
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: theme.colors.text,
-    },
 }));
 
 export const SidebarView = React.memo(() => {
@@ -138,7 +128,7 @@ export const SidebarView = React.memo(() => {
     const socketStatus = useSocketStatus();
     const realtimeStatus = useRealtimeStatus();
     const friendRequests = useFriendRequests();
-    const inboxHasContent = useInboxHasContent();
+    const waitingTasks = useWaitingTasks();
     const settings = useSettings();
 
     // Compute connection status once per render (theme-reactive, no stale memoization)
@@ -248,15 +238,12 @@ export const SidebarView = React.memo(() => {
                                 style={[{ width: 32, height: 32 }]}
                                 tintColor={theme.colors.header.tint}
                             />
-                            {friendRequests.length > 0 && (
+                            {waitingTasks.length > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
-                                        {friendRequests.length > 99 ? '99+' : friendRequests.length}
+                                        {waitingTasks.length > 99 ? '99+' : waitingTasks.length}
                                     </Text>
                                 </View>
-                            )}
-                            {inboxHasContent && friendRequests.length === 0 && (
-                                <View style={styles.indicatorDot} />
                             )}
                         </Pressable>
                         <Pressable

@@ -6,7 +6,6 @@ import { Image } from 'expo-image';
 import { t } from '@/text';
 import { Typography } from '@/constants/Typography';
 import { layout } from '@/components/layout';
-import { useInboxHasContent } from '@/hooks/useInboxHasContent';
 
 export type TabType = 'inbox' | 'tasks' | 'sessions' | 'settings';
 
@@ -56,7 +55,7 @@ const styles = StyleSheet.create((theme) => ({
         position: 'absolute',
         top: -4,
         right: -8,
-        backgroundColor: theme.colors.status.error,
+        backgroundColor: '#FF9500',
         borderRadius: 8,
         minWidth: 16,
         height: 16,
@@ -69,28 +68,18 @@ const styles = StyleSheet.create((theme) => ({
         fontSize: 10,
         ...Typography.default('semiBold'),
     },
-    indicatorDot: {
-        position: 'absolute',
-        top: 0,
-        right: -2,
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: theme.colors.text,
-    },
 }));
 
 export const TabBar = React.memo(({ activeTab, onTabPress, inboxBadgeCount = 0 }: TabBarProps) => {
     const { theme } = useUnistyles();
     const insets = useSafeAreaInsets();
-    const inboxHasContent = useInboxHasContent();
 
     const tabs: { key: TabType; icon: any; label: string }[] = React.useMemo(() => {
         // NOTE: Zen tab removed - the feature never got to a useful state
         return [
             { key: 'inbox', icon: require('@/assets/images/brutalist/Brutalism 27.png'), label: t('tabs.inbox') },
             { key: 'tasks', icon: require('@/assets/images/brutalist/Brutalism 44.png'), label: t('tabs.tasks') },
-            { key: 'sessions', icon: require('@/assets/images/brutalist/Brutalism 15.png'), label: t('tabs.terminals') },
+            { key: 'sessions', icon: require('@/assets/images/brutalist/Brutalism 15.png'), label: t('tabs.sessions') },
             { key: 'settings', icon: require('@/assets/images/brutalist/Brutalism 9.png'), label: t('tabs.settings') },
         ];
     }, []);
@@ -121,9 +110,6 @@ export const TabBar = React.memo(({ activeTab, onTabPress, inboxBadgeCount = 0 }
                                             {inboxBadgeCount > 99 ? '99+' : inboxBadgeCount}
                                         </Text>
                                     </View>
-                                )}
-                                {tab.key === 'inbox' && inboxHasContent && inboxBadgeCount === 0 && (
-                                    <View style={styles.indicatorDot} />
                                 )}
                             </View>
                             <Text style={[

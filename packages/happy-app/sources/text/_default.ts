@@ -27,8 +27,8 @@ export const en = {
     // Tab navigation labels
     inbox: "Inbox",
     tasks: "Tasks",
-    terminals: "Terminals",
-    sessions: "Terminals",
+    terminals: "Sessions",
+    sessions: "Sessions",
     settings: "Settings",
   },
 

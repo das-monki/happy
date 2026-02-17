@@ -30,8 +30,8 @@ export const ja: TranslationStructure = {
     // Tab navigation labels
     inbox: "受信トレイ",
     tasks: "タスク",
-    terminals: "ターミナル",
-    sessions: "ターミナル",
+    terminals: "セッション",
+    sessions: "セッション",
     settings: "設定",
   },
 

@@ -40,8 +40,8 @@ export const pl: TranslationStructure = {
     // Tab navigation labels
     inbox: "Skrzynka",
     tasks: "Zadania",
-    terminals: "Terminale",
-    sessions: "Terminale",
+    terminals: "Sesje",
+    sessions: "Sesje",
     settings: "Ustawienia",
   },
 

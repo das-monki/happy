@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useFriendRequests, useSocketStatus, useRealtimeStatus } from '@/sync/storage';
+import { useFriendRequests, useSocketStatus, useRealtimeStatus, useWaitingTasks } from '@/sync/storage';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
 import { useIsTablet } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
@@ -101,7 +101,7 @@ const styles = StyleSheet.create((theme) => ({
 
 // Tab header configuration
 const TAB_TITLES = {
-    sessions: 'tabs.terminals',
+    sessions: 'tabs.sessions',
     inbox: 'tabs.inbox',
     tasks: 'tabs.tasks',
     settings: 'tabs.settings',
@@ -244,6 +244,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const router = useRouter();
     const friendRequests = useFriendRequests();
     const realtimeStatus = useRealtimeStatus();
+    const waitingTasks = useWaitingTasks();
 
     // Tab state management
     // NOTE: Zen tab removed - the feature never got to a useful state
@@ -333,7 +334,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
             <TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                inboxBadgeCount={friendRequests.length}
+                inboxBadgeCount={waitingTasks.length}
             />
         </>
     );

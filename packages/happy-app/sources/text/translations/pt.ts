@@ -27,8 +27,8 @@ export const pt: TranslationStructure = {
     // Tab navigation labels
     inbox: "Caixa de entrada",
     tasks: "Tarefas",
-    terminals: "Terminais",
-    sessions: "Terminais",
+    terminals: "Sessões",
+    sessions: "Sessões",
     settings: "Configurações",
   },
 
