@@ -75,6 +75,7 @@ export interface Session {
     updatedAt: number,
     active: boolean,
     activeAt: number,
+    taskId: string | null,
     metadata: Metadata | null,
     metadataVersion: number,
     agentState: AgentState | null,

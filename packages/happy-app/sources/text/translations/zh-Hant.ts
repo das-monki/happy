@@ -28,15 +28,56 @@ export const zhHant: TranslationStructure = {
   tabs: {
     // Tab navigation labels
     inbox: "收件匣",
+    tasks: "任務",
+    terminals: "終端",
     sessions: "終端",
     settings: "設定",
   },
 
   inbox: {
     // Inbox screen
-    emptyTitle: "收件匣是空的",
-    emptyDescription: "與好友建立連結，開始共享工作階段",
+    emptyTitle: "All Clear",
+    emptyDescription: "No tasks need your attention right now",
     updates: "更新",
+    waitingTasks: "Tasks Waiting for Input",
+  },
+
+  tasks: {
+    title: "Tasks",
+    createTask: "Create Task",
+    taskDetail: "Task",
+    emptyTitle: "No Tasks",
+    emptyDescription: "Create a task to assign work to your agents",
+    untitled: "Untitled Task",
+    notFound: "Task not found",
+    details: "Details",
+    fieldTitle: "Title",
+    fieldDescription: "Description",
+    fieldState: "State",
+    fieldAgent: "Agent",
+    noAgent: "No Agent",
+    fieldMachine: "Machine",
+    fieldDirectory: "Directory",
+    titlePlaceholder: "What needs to be done?",
+    descriptionPlaceholder: "Add more details...",
+    statePending: "Pending",
+    stateRunning: "Running",
+    stateWaiting: "Waiting",
+    stateCompleted: "Completed",
+    stateFailed: "Failed",
+    sessions: "Sessions",
+    sessionActive: "Active",
+    sessionInactive: "Inactive",
+    noAgentAssigned: "Please assign an agent before running this task.",
+    noMachines: "No machines available. Connect a machine first.",
+    noMachinesOnline: "No machines are currently online.",
+    run: "Run Task",
+    running: "Starting\u2026",
+    runFailed: "Failed to start session",
+    markCompleted: "Mark as Completed",
+    markFailed: "Mark as Failed",
+    deleteTitle: "Delete Task",
+    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },
 
   common: {
@@ -70,6 +111,7 @@ export const zhHant: TranslationStructure = {
     retry: "重試",
     delete: "刪除",
     optional: "選填",
+    saving: "儲存中...",
   },
 
   profile: {
@@ -144,6 +186,8 @@ export const zhHant: TranslationStructure = {
     exchangingTokens: "正在交換權杖...",
     usage: "使用情況",
     usageSubtitle: "查看 API 使用情況和費用",
+    agents: "代理",
+    agentsSubtitle: "管理代理提示範本",
     profiles: "設定檔",
     profilesSubtitle: "管理工作階段的環境變數設定檔",
 
@@ -977,6 +1021,24 @@ export const zhHant: TranslationStructure = {
     friendAccepted: ({ name }: { name: string }) =>
       `您現在與 ${name} 成為了好友`,
     friendAcceptedGeneric: "好友請求已接受",
+  },
+
+  agents: {
+    // Agent definitions management
+    title: "Agents",
+    createAgent: "Create Agent",
+    editAgent: "Edit Agent",
+    name: "Name",
+    namePlaceholder: "Agent name",
+    description: "Description",
+    descriptionPlaceholder: "What does this agent do?",
+    promptTemplate: "Prompt Template",
+    promptTemplatePlaceholder: "Enter the system prompt for this agent...",
+    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    empty: "No Agents",
+    emptyDescription: "Create agent definitions to use with tasks.",
+    deleteTitle: "Delete Agent",
+    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },
 
   profiles: {

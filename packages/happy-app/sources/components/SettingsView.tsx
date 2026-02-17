@@ -317,6 +317,12 @@ export const SettingsView = React.memo(function SettingsView() {
                     onPress={() => router.push('/settings/voice')}
                 />
                 <Item
+                    title={t('settings.agents')}
+                    subtitle={t('settings.agentsSubtitle')}
+                    icon={<Ionicons name="hardware-chip-outline" size={29} color="#FF6B35" />}
+                    onPress={() => router.push('/settings/agents')}
+                />
+                <Item
                     title={t('settings.featuresTitle')}
                     subtitle={t('settings.featuresSubtitle')}
                     icon={<Ionicons name="flask-outline" size={29} color="#FF9500" />}

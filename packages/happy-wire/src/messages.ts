@@ -94,11 +94,42 @@ export const UpdateMachineBodySchema = z.object({
 });
 export type UpdateMachineBody = z.infer<typeof UpdateMachineBodySchema>;
 
+export const NewTaskBodySchema = z.object({
+  t: z.literal('new-task'),
+  taskId: z.string(),
+  seq: z.number(),
+  header: z.string(),
+  headerVersion: z.number(),
+  body: z.string(),
+  bodyVersion: z.number(),
+  dataEncryptionKey: z.string().nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+export type NewTaskBody = z.infer<typeof NewTaskBodySchema>;
+
+export const UpdateTaskBodySchema = z.object({
+  t: z.literal('update-task'),
+  taskId: z.string(),
+  header: VersionedEncryptedValueSchema.optional(),
+  body: VersionedEncryptedValueSchema.optional(),
+});
+export type UpdateTaskBody = z.infer<typeof UpdateTaskBodySchema>;
+
+export const DeleteTaskBodySchema = z.object({
+  t: z.literal('delete-task'),
+  taskId: z.string(),
+});
+export type DeleteTaskBody = z.infer<typeof DeleteTaskBodySchema>;
+
 export const CoreUpdateBodySchema = z.discriminatedUnion('t', [
   UpdateNewMessageBodySchema,
   UpdateSessionBodySchema,
   NewMachineBodySchema,
   UpdateMachineBodySchema,
+  NewTaskBodySchema,
+  UpdateTaskBodySchema,
+  DeleteTaskBodySchema,
 ]);
 export type CoreUpdateBody = z.infer<typeof CoreUpdateBodySchema>;
 

@@ -35,6 +35,9 @@ import { systemPrompt } from './prompt/systemPrompt';
 import { fetchArtifact, fetchArtifacts, createArtifact, updateArtifact } from './apiArtifacts';
 import { DecryptedArtifact, Artifact, ArtifactCreateRequest, ArtifactUpdateRequest } from './artifactTypes';
 import { ArtifactEncryption } from './encryption/artifactEncryption';
+import { fetchTasks, createTask as createTaskApi, updateTask as updateTaskApi, deleteTask as deleteTaskApi } from './apiTasks';
+import { DecryptedTask, Task, TaskHeader } from './taskTypes';
+import { TaskEncryption } from './encryption/taskEncryption';
 import { getFriendsList, getUserProfile } from './apiFriends';
 import { fetchFeed } from './apiFeed';
 import { FeedItem } from './feedTypes';
@@ -80,6 +83,7 @@ class Sync {
     private sessionDataKeys = new Map<string, Uint8Array>(); // Store session data encryption keys internally
     private machineDataKeys = new Map<string, Uint8Array>(); // Store machine data encryption keys internally
     private artifactDataKeys = new Map<string, Uint8Array>(); // Store artifact data encryption keys internally
+    private taskDataKeys = new Map<string, Uint8Array>(); // Store task data encryption keys internally
     private settingsSync: InvalidateSync;
     private profileSync: InvalidateSync;
     private purchasesSync: InvalidateSync;
@@ -87,6 +91,7 @@ class Sync {
     private pushTokenSync: InvalidateSync;
     private nativeUpdateSync: InvalidateSync;
     private artifactsSync: InvalidateSync;
+    private tasksSync: InvalidateSync;
     private friendsSync: InvalidateSync;
     private friendRequestsSync: InvalidateSync;
     private feedSync: InvalidateSync;
@@ -110,6 +115,7 @@ class Sync {
         this.machinesSync = new InvalidateSync(this.fetchMachines);
         this.nativeUpdateSync = new InvalidateSync(this.fetchNativeUpdate);
         this.artifactsSync = new InvalidateSync(this.fetchArtifactsList);
+        this.tasksSync = new InvalidateSync(this.fetchTasksList);
         this.friendsSync = new InvalidateSync(this.fetchFriends);
         this.friendRequestsSync = new InvalidateSync(this.fetchFriendRequests);
         this.feedSync = new InvalidateSync(this.fetchFeed);
@@ -145,6 +151,7 @@ class Sync {
                 this.nativeUpdateSync.invalidate();
                 log.log('📱 App became active: Invalidating artifacts sync');
                 this.artifactsSync.invalidate();
+                this.tasksSync.invalidate();
                 this.friendsSync.invalidate();
                 this.friendRequestsSync.invalidate();
                 this.feedSync.invalidate();
@@ -209,8 +216,9 @@ class Sync {
         this.friendsSync.invalidate();
         this.friendRequestsSync.invalidate();
         this.artifactsSync.invalidate();
+        this.tasksSync.invalidate();
         this.feedSync.invalidate();
-        log.log('🔄 #init: All syncs invalidated, including artifacts');
+        log.log('🔄 #init: All syncs invalidated, including artifacts and tasks');
 
         // Wait for both sessions and machines to load, then mark as ready
         Promise.all([
@@ -710,6 +718,7 @@ class Sync {
             agentState: string | null;
             agentStateVersion: number;
             dataEncryptionKey: string | null;
+            taskId: string | null;
             active: boolean;
             activeAt: number;
             createdAt: number;
@@ -1054,6 +1063,160 @@ class Sync {
             storage.getState().updateArtifact(updatedArtifact);
         } catch (error) {
             console.error('Failed to update artifact:', error);
+            throw error;
+        }
+    }
+
+    public async createTask(title: string, description: string | null, agentKey: string | null): Promise<string> {
+        if (!this.credentials) {
+            throw new Error('Not authenticated');
+        }
+
+        try {
+            const taskId = this.encryption.generateId();
+            const dataEncryptionKey = TaskEncryption.generateDataEncryptionKey();
+
+            this.taskDataKeys.set(taskId, dataEncryptionKey);
+
+            const encryptedKey = await this.encryption.encryptEncryptionKey(dataEncryptionKey);
+            const taskEncryption = new TaskEncryption(dataEncryptionKey);
+
+            const encryptedHeader = await taskEncryption.encryptHeader({ title, description, agentKey });
+            const encryptedBody = await taskEncryption.encryptBody({ notes: null, result: null });
+
+            const task = await createTaskApi(this.credentials, {
+                id: taskId,
+                header: encryptedHeader,
+                body: encryptedBody,
+                dataEncryptionKey: encodeBase64(encryptedKey, 'base64'),
+            });
+
+            const decryptedTask: DecryptedTask = {
+                id: task.id,
+                title,
+                description,
+                agentKey,
+                headerVersion: task.headerVersion,
+                bodyVersion: task.bodyVersion,
+                seq: task.seq,
+                createdAt: task.createdAt,
+                updatedAt: task.updatedAt,
+                isDecrypted: true,
+            };
+
+            storage.getState().addTask(decryptedTask);
+            return taskId;
+        } catch (error) {
+            console.error('Failed to create task:', error);
+            throw error;
+        }
+    }
+
+    public async removeTask(taskId: string): Promise<void> {
+        if (!this.credentials) {
+            throw new Error('Not authenticated');
+        }
+
+        try {
+            await deleteTaskApi(this.credentials, taskId);
+            this.taskDataKeys.delete(taskId);
+            storage.getState().deleteTask(taskId);
+        } catch (error) {
+            console.error('Failed to delete task:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update task header fields (title, description, agentKey, status).
+     * Uses optimistic concurrency control via headerVersion.
+     */
+    public async updateTaskHeader(taskId: string, updates: { title?: string | null; description?: string | null; agentKey?: string | null; status?: 'completed' | 'failed' }): Promise<void> {
+        if (!this.credentials) {
+            throw new Error('Not authenticated');
+        }
+
+        const task = storage.getState().tasks[taskId];
+        if (!task) {
+            throw new Error('Task not found');
+        }
+
+        let dataEncryptionKey = this.taskDataKeys.get(taskId);
+        if (!dataEncryptionKey) {
+            throw new Error('Task encryption key not found');
+        }
+
+        const taskEncryption = new TaskEncryption(dataEncryptionKey);
+        const newHeader: TaskHeader = {
+            title: updates.title !== undefined ? updates.title : task.title,
+            description: updates.description !== undefined ? updates.description : task.description,
+            agentKey: updates.agentKey !== undefined ? updates.agentKey : task.agentKey,
+            ...(updates.status ? { status: updates.status } : (task.status ? { status: task.status } : {})),
+        };
+
+        const encryptedHeader = await taskEncryption.encryptHeader(newHeader);
+        const result = await updateTaskApi(this.credentials, taskId, {
+            header: encryptedHeader,
+            expectedHeaderVersion: task.headerVersion,
+        });
+
+        if (!result.success) {
+            this.tasksSync.invalidate();
+            throw new Error('Version mismatch - task was modified elsewhere');
+        }
+
+        storage.getState().updateTask({
+            ...task,
+            ...newHeader,
+            headerVersion: result.headerVersion ?? task.headerVersion + 1,
+        });
+    }
+
+    private fetchTasksList = async () => {
+        if (!this.credentials) return;
+
+        try {
+            const tasks = await fetchTasks(this.credentials);
+
+            const decryptedTasks: DecryptedTask[] = [];
+            for (const task of tasks) {
+                const decryptedKey = await this.encryption.decryptEncryptionKey(task.dataEncryptionKey);
+                if (!decryptedKey) {
+                    decryptedTasks.push({
+                        id: task.id,
+                        title: null,
+                        description: null,
+                        agentKey: null,
+                        headerVersion: task.headerVersion,
+                        seq: task.seq,
+                        createdAt: task.createdAt,
+                        updatedAt: task.updatedAt,
+                        isDecrypted: false,
+                    });
+                    continue;
+                }
+
+                this.taskDataKeys.set(task.id, decryptedKey);
+                const taskEncryption = new TaskEncryption(decryptedKey);
+                const header = await taskEncryption.decryptHeader(task.header);
+
+                decryptedTasks.push({
+                    id: task.id,
+                    title: header?.title || null,
+                    description: header?.description || null,
+                    agentKey: header?.agentKey || null,
+                    status: header?.status,
+                    headerVersion: task.headerVersion,
+                    seq: task.seq,
+                    createdAt: task.createdAt,
+                    updatedAt: task.updatedAt,
+                    isDecrypted: !!header,
+                });
+            }
+
+            storage.getState().applyTasks(decryptedTasks);
+        } catch (error) {
+            console.error('Failed to fetch tasks:', error);
             throw error;
         }
     }
@@ -2178,6 +2341,59 @@ class Sync {
             
             // Remove encryption key from memory
             this.artifactDataKeys.delete(artifactId);
+        } else if (updateData.body.t === 'new-task') {
+            log.log('📋 Received new-task update');
+            this.tasksSync.invalidate();
+        } else if (updateData.body.t === 'update-task') {
+            log.log('📋 Received update-task update');
+            const taskUpdate = updateData.body;
+            const taskId = taskUpdate.taskId;
+
+            const existingTask = storage.getState().tasks[taskId];
+            if (!existingTask) {
+                this.tasksSync.invalidate();
+                return;
+            }
+
+            try {
+                let dataEncryptionKey = this.taskDataKeys.get(taskId);
+                if (!dataEncryptionKey) {
+                    this.tasksSync.invalidate();
+                    return;
+                }
+
+                const taskEncryption = new TaskEncryption(dataEncryptionKey);
+                const updatedTask: DecryptedTask = {
+                    ...existingTask,
+                    seq: updateData.seq,
+                    updatedAt: updateData.createdAt,
+                };
+
+                if (taskUpdate.header) {
+                    const header = await taskEncryption.decryptHeader(taskUpdate.header.value);
+                    updatedTask.title = header?.title || null;
+                    updatedTask.description = header?.description || null;
+                    updatedTask.agentKey = header?.agentKey || null;
+                    updatedTask.status = header?.status;
+                    updatedTask.headerVersion = taskUpdate.header.version;
+                }
+
+                if (taskUpdate.body) {
+                    const body = await taskEncryption.decryptBody(taskUpdate.body.value);
+                    updatedTask.notes = body?.notes || null;
+                    updatedTask.result = body?.result || null;
+                    updatedTask.bodyVersion = taskUpdate.body.version;
+                }
+
+                storage.getState().updateTask(updatedTask);
+            } catch (error) {
+                console.error(`Failed to process task update ${taskId}:`, error);
+            }
+        } else if (updateData.body.t === 'delete-task') {
+            log.log('📋 Received delete-task update');
+            const taskId = updateData.body.taskId;
+            storage.getState().deleteTask(taskId);
+            this.taskDataKeys.delete(taskId);
         } else if (updateData.body.t === 'new-feed-post') {
             log.log('📰 Received new-feed-post update');
             const feedUpdate = updateData.body;

@@ -298,6 +298,22 @@ export default function RootLayout() {
                 }}
             />
             <Stack.Screen
+                name="task/create"
+                options={{
+                    headerShown: true,
+                    headerTitle: t('tasks.createTask'),
+                    headerBackTitle: t('common.cancel'),
+                }}
+            />
+            <Stack.Screen
+                name="task/[id]"
+                options={{
+                    headerShown: true,
+                    headerTitle: t('tasks.taskDetail'),
+                    headerBackTitle: t('common.back'),
+                }}
+            />
+            <Stack.Screen
                 name="new/pick/machine"
                 options={{
                     headerTitle: '',

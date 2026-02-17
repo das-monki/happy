@@ -19,6 +19,7 @@ import { getCurrentRealtimeSessionId, getVoiceSession } from '@/realtime/Realtim
 import { isMutableTool } from "@/components/tools/knownTools";
 import { projectManager } from "./projectManager";
 import { DecryptedArtifact } from "./artifactTypes";
+import { DecryptedTask, TaskState } from "./taskTypes";
 import { FeedItem } from "./feedTypes";
 
 // Debounce timer for realtimeMode changes
@@ -82,6 +83,7 @@ interface StorageState {
     sessionGitStatus: Record<string, GitStatus | null>;
     machines: Record<string, Machine>;
     artifacts: Record<string, DecryptedArtifact>;  // New artifacts storage
+    tasks: Record<string, DecryptedTask>;
     friends: Record<string, UserProfile>;  // All relationships (friends, pending, requested, etc.)
     users: Record<string, UserProfile | null>;  // Global user cache, null = 404/failed fetch
     feedItems: FeedItem[];  // Simple list of feed items
@@ -124,6 +126,11 @@ interface StorageState {
     addArtifact: (artifact: DecryptedArtifact) => void;
     updateArtifact: (artifact: DecryptedArtifact) => void;
     deleteArtifact: (artifactId: string) => void;
+    // Task methods
+    applyTasks: (tasks: DecryptedTask[]) => void;
+    addTask: (task: DecryptedTask) => void;
+    updateTask: (task: DecryptedTask) => void;
+    deleteTask: (taskId: string) => void;
     deleteSession: (sessionId: string) => void;
     // Project management methods
     getProjects: () => import('./projectManager').Project[];
@@ -260,6 +267,7 @@ export const storage = create<StorageState>()((set, get) => {
         sessions: {},
         machines: {},
         artifacts: {},  // Initialize artifacts
+        tasks: {},
         friends: {},  // Initialize relationships cache
         users: {},  // Initialize global user cache
         feedItems: [],  // Initialize feed items list
@@ -906,10 +914,36 @@ export const storage = create<StorageState>()((set, get) => {
         }),
         deleteArtifact: (artifactId: string) => set((state) => {
             const { [artifactId]: _, ...remainingArtifacts } = state.artifacts;
-            
+
             return {
                 ...state,
                 artifacts: remainingArtifacts
+            };
+        }),
+        // Task methods
+        applyTasks: (tasks: DecryptedTask[]) => set((state) => {
+            const mergedTasks = { ...state.tasks };
+            tasks.forEach(task => {
+                mergedTasks[task.id] = task;
+            });
+            return {
+                ...state,
+                tasks: mergedTasks
+            };
+        }),
+        addTask: (task: DecryptedTask) => set((state) => ({
+            ...state,
+            tasks: { ...state.tasks, [task.id]: task }
+        })),
+        updateTask: (task: DecryptedTask) => set((state) => ({
+            ...state,
+            tasks: { ...state.tasks, [task.id]: task }
+        })),
+        deleteTask: (taskId: string) => set((state) => {
+            const { [taskId]: _, ...remainingTasks } = state.tasks;
+            return {
+                ...state,
+                tasks: remainingTasks
             };
         }),
         deleteSession: (sessionId: string) => set((state) => {
@@ -1218,6 +1252,75 @@ export function useArtifactsCount(): number {
     return storage(useShallow((state) => {
         // Count only non-draft artifacts
         return Object.values(state.artifacts).filter(a => !a.draft).length;
+    }));
+}
+
+// Task hooks
+
+export function useTasks(): DecryptedTask[] {
+    return storage(useShallow((state) => {
+        if (!state.isDataReady) return [];
+        return Object.values(state.tasks).sort((a, b) => b.updatedAt - a.updatedAt);
+    }));
+}
+
+export function useTask(taskId: string): DecryptedTask | null {
+    return storage(useShallow((state) => state.tasks[taskId] ?? null));
+}
+
+/**
+ * Derive task state from linked sessions.
+ * - completed/failed: explicitly set in task header
+ * - running: at least one linked session is active
+ * - waiting_input: all linked sessions are inactive (agent waiting)
+ * - pending: no linked sessions
+ */
+export function useTaskState(taskId: string): TaskState {
+    return storage(useShallow((state) => {
+        const task = state.tasks[taskId];
+        if (!task) return 'pending';
+
+        // Explicit status in header takes precedence
+        if (task.status === 'completed') return 'completed';
+        if (task.status === 'failed') return 'failed';
+
+        // Find linked sessions
+        const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === taskId);
+        if (linkedSessions.length === 0) return 'pending';
+
+        const hasActive = linkedSessions.some(s => s.active);
+        if (hasActive) return 'running';
+
+        return 'waiting_input';
+    }));
+}
+
+/**
+ * Returns sessions linked to a specific task via taskId.
+ * Used by the task detail screen to show linked sessions.
+ */
+export function useTaskSessions(taskId: string): Session[] {
+    return storage(useShallow((state) => {
+        if (!state.isDataReady) return [];
+        return Object.values(state.sessions)
+            .filter(s => s.taskId === taskId)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+    }));
+}
+
+/**
+ * Returns tasks where at least one linked session is waiting for user input (inactive).
+ * Used by the inbox to show tasks that need attention.
+ */
+export function useWaitingTasks(): DecryptedTask[] {
+    return storage(useShallow((state) => {
+        if (!state.isDataReady) return [];
+        return Object.values(state.tasks).filter(task => {
+            if (task.status === 'completed' || task.status === 'failed') return false;
+            const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === task.id);
+            if (linkedSessions.length === 0) return false;
+            return linkedSessions.every(s => !s.active);
+        }).sort((a, b) => b.updatedAt - a.updatedAt);
     }));
 }
 

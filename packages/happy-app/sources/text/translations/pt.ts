@@ -26,16 +26,56 @@ export const pt: TranslationStructure = {
   tabs: {
     // Tab navigation labels
     inbox: "Caixa de entrada",
+    tasks: "Tarefas",
+    terminals: "Terminais",
     sessions: "Terminais",
     settings: "Configurações",
   },
 
   inbox: {
     // Inbox screen
-    emptyTitle: "Caixa de entrada vazia",
-    emptyDescription:
-      "Conecte-se com amigos para começar a compartilhar sessões",
+    emptyTitle: "All Clear",
+    emptyDescription: "No tasks need your attention right now",
     updates: "Atualizações",
+    waitingTasks: "Tasks Waiting for Input",
+  },
+
+  tasks: {
+    title: "Tasks",
+    createTask: "Create Task",
+    taskDetail: "Task",
+    emptyTitle: "No Tasks",
+    emptyDescription: "Create a task to assign work to your agents",
+    untitled: "Untitled Task",
+    notFound: "Task not found",
+    details: "Details",
+    fieldTitle: "Title",
+    fieldDescription: "Description",
+    fieldState: "State",
+    fieldAgent: "Agent",
+    noAgent: "No Agent",
+    fieldMachine: "Machine",
+    fieldDirectory: "Directory",
+    titlePlaceholder: "What needs to be done?",
+    descriptionPlaceholder: "Add more details...",
+    statePending: "Pending",
+    stateRunning: "Running",
+    stateWaiting: "Waiting",
+    stateCompleted: "Completed",
+    stateFailed: "Failed",
+    sessions: "Sessions",
+    sessionActive: "Active",
+    sessionInactive: "Inactive",
+    noAgentAssigned: "Please assign an agent before running this task.",
+    noMachines: "No machines available. Connect a machine first.",
+    noMachinesOnline: "No machines are currently online.",
+    run: "Run Task",
+    running: "Starting\u2026",
+    runFailed: "Failed to start session",
+    markCompleted: "Mark as Completed",
+    markFailed: "Mark as Failed",
+    deleteTitle: "Delete Task",
+    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },
 
   common: {
@@ -69,6 +109,7 @@ export const pt: TranslationStructure = {
     retry: "Tentar novamente",
     delete: "Excluir",
     optional: "Opcional",
+    saving: "Salvando...",
   },
 
   profile: {
@@ -146,6 +187,8 @@ export const pt: TranslationStructure = {
     exchangingTokens: "Trocando tokens...",
     usage: "Uso",
     usageSubtitle: "Visualizar uso da API e custos",
+    agents: "Agentes",
+    agentsSubtitle: "Gerenciar modelos de agentes",
     profiles: "Perfis",
     profilesSubtitle: "Gerenciar perfis de ambiente e variáveis",
 
@@ -1013,6 +1056,24 @@ export const pt: TranslationStructure = {
     usageOverTime: "Uso ao longo do tempo",
     byModel: "Por modelo",
     noData: "Nenhum dado de uso disponível",
+  },
+
+  agents: {
+    // Agent definitions management
+    title: "Agents",
+    createAgent: "Create Agent",
+    editAgent: "Edit Agent",
+    name: "Name",
+    namePlaceholder: "Agent name",
+    description: "Description",
+    descriptionPlaceholder: "What does this agent do?",
+    promptTemplate: "Prompt Template",
+    promptTemplatePlaceholder: "Enter the system prompt for this agent...",
+    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    empty: "No Agents",
+    emptyDescription: "Create agent definitions to use with tasks.",
+    deleteTitle: "Delete Agent",
+    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },
 
   profiles: {

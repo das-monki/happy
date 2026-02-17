@@ -147,6 +147,31 @@ export type UpdateEvent = {
     cursor: string;
     createdAt: number;
 } | {
+    type: 'new-task';
+    taskId: string;
+    seq: number;
+    header: string;
+    headerVersion: number;
+    body: string;
+    bodyVersion: number;
+    dataEncryptionKey: string | null;
+    createdAt: number;
+    updatedAt: number;
+} | {
+    type: 'update-task';
+    taskId: string;
+    header?: {
+        value: string;
+        version: number;
+    };
+    body?: {
+        value: string;
+        version: number;
+    };
+} | {
+    type: 'delete-task';
+    taskId: string;
+} | {
     type: 'kv-batch-update';
     changes: Array<{
         key: string;
@@ -612,6 +637,62 @@ export function buildNewFeedPostUpdate(feedItem: {
             body: feedItem.body,
             cursor: feedItem.cursor,
             createdAt: feedItem.createdAt
+        },
+        createdAt: Date.now()
+    };
+}
+
+export function buildNewTaskUpdate(task: {
+    id: string;
+    seq: number;
+    header: Uint8Array;
+    headerVersion: number;
+    body: Uint8Array;
+    bodyVersion: number;
+    dataEncryptionKey: Uint8Array;
+    createdAt: Date;
+    updatedAt: Date;
+}, updateSeq: number, updateId: string): UpdatePayload {
+    return {
+        id: updateId,
+        seq: updateSeq,
+        body: {
+            t: 'new-task',
+            taskId: task.id,
+            seq: task.seq,
+            header: Buffer.from(task.header).toString('base64'),
+            headerVersion: task.headerVersion,
+            body: Buffer.from(task.body).toString('base64'),
+            bodyVersion: task.bodyVersion,
+            dataEncryptionKey: Buffer.from(task.dataEncryptionKey).toString('base64'),
+            createdAt: task.createdAt.getTime(),
+            updatedAt: task.updatedAt.getTime()
+        },
+        createdAt: Date.now()
+    };
+}
+
+export function buildUpdateTaskUpdate(taskId: string, updateSeq: number, updateId: string, header?: { value: string; version: number }, body?: { value: string; version: number }): UpdatePayload {
+    return {
+        id: updateId,
+        seq: updateSeq,
+        body: {
+            t: 'update-task',
+            taskId,
+            header,
+            body
+        },
+        createdAt: Date.now()
+    };
+}
+
+export function buildDeleteTaskUpdate(taskId: string, updateSeq: number, updateId: string): UpdatePayload {
+    return {
+        id: updateId,
+        seq: updateSeq,
+        body: {
+            t: 'delete-task',
+            taskId
         },
         createdAt: Date.now()
     };

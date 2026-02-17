@@ -10,6 +10,7 @@ import { SessionsList } from './SessionsList';
 import { FABWide } from './FABWide';
 import { TabBar, TabType } from './TabBar';
 import { InboxView } from './InboxView';
+import { TasksView } from './TasksView';
 import { SettingsViewWrapper } from './SettingsViewWrapper';
 import { SessionsListWrapper } from './SessionsListWrapper';
 import { Header } from './navigation/Header';
@@ -100,13 +101,14 @@ const styles = StyleSheet.create((theme) => ({
 
 // Tab header configuration
 const TAB_TITLES = {
-    sessions: 'tabs.sessions',
+    sessions: 'tabs.terminals',
     inbox: 'tabs.inbox',
+    tasks: 'tabs.tasks',
     settings: 'tabs.settings',
 } as const;
 
 // Active tabs
-type ActiveTabType = 'sessions' | 'inbox' | 'settings';
+type ActiveTabType = 'sessions' | 'inbox' | 'tasks' | 'settings';
 
 // Header title component with connection status
 const HeaderTitle = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => {
@@ -189,6 +191,18 @@ const HeaderRight = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
         );
     }
 
+    if (activeTab === 'tasks') {
+        return (
+            <Pressable
+                onPress={() => router.push('/task/create')}
+                hitSlop={15}
+                style={styles.headerButton}
+            >
+                <Ionicons name="add-outline" size={28} color={theme.colors.header.tint} />
+            </Pressable>
+        );
+    }
+
     if (activeTab === 'inbox') {
         return (
             <Pressable
@@ -248,6 +262,8 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
         switch (activeTab) {
             case 'inbox':
                 return <InboxView />;
+            case 'tasks':
+                return <TasksView />;
             case 'settings':
                 return <SettingsViewWrapper />;
             case 'sessions':

@@ -286,6 +286,98 @@ export class ApiClient {
   }
 
   /**
+   * Create an artifact linked to a task and session
+   */
+  async postArtifact(data: {
+    id: string;
+    header: string;
+    body: string;
+    dataEncryptionKey: string;
+    kind?: string;
+    taskId?: string;
+    sourceSessionId?: string;
+  }): Promise<any> {
+    const response = await axios.post(
+      `${configuration.serverUrl}/v1/artifacts`,
+      data,
+      {
+        headers: {
+          'Authorization': `Bearer ${this.credential.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Update an existing artifact
+   */
+  async updateArtifact(artifactId: string, data: {
+    header?: string;
+    expectedHeaderVersion?: number;
+    body?: string;
+    expectedBodyVersion?: number;
+  }): Promise<any> {
+    const response = await axios.post(
+      `${configuration.serverUrl}/v1/artifacts/${artifactId}`,
+      data,
+      {
+        headers: {
+          'Authorization': `Bearer ${this.credential.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * List artifacts, optionally filtered by taskId
+   */
+  async getArtifacts(taskId?: string): Promise<any[]> {
+    const url = taskId
+      ? `${configuration.serverUrl}/v1/artifacts?taskId=${encodeURIComponent(taskId)}`
+      : `${configuration.serverUrl}/v1/artifacts`;
+
+    const response = await axios.get(url, {
+      headers: {
+        'Authorization': `Bearer ${this.credential.token}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+    return response.data;
+  }
+
+  /**
+   * Get a single artifact with full body
+   */
+  async getArtifact(artifactId: string): Promise<any> {
+    const response = await axios.get(
+      `${configuration.serverUrl}/v1/artifacts/${artifactId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${this.credential.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
+    return response.data;
+  }
+
+  get token(): string {
+    return this.credential.token;
+  }
+
+  get encryption_() {
+    return this.credential.encryption;
+  }
+
+  /**
    * Register a vendor API token with the server
    * The token is sent as a JSON string - server handles encryption
    */

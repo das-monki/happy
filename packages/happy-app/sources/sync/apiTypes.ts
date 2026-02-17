@@ -103,6 +103,38 @@ export const ApiNewFeedPostSchema = z.object({
     repeatKey: z.string().nullable()
 });
 
+// Task update schemas
+export const ApiNewTaskSchema = z.object({
+    t: z.literal('new-task'),
+    taskId: z.string(),
+    seq: z.number(),
+    header: z.string(),
+    headerVersion: z.number(),
+    body: z.string(),
+    bodyVersion: z.number(),
+    dataEncryptionKey: z.string().nullable(),
+    createdAt: z.number(),
+    updatedAt: z.number()
+});
+
+export const ApiUpdateTaskSchema = z.object({
+    t: z.literal('update-task'),
+    taskId: z.string(),
+    header: z.object({
+        value: z.string(),
+        version: z.number()
+    }).optional(),
+    body: z.object({
+        value: z.string(),
+        version: z.number()
+    }).optional()
+});
+
+export const ApiDeleteTaskSchema = z.object({
+    t: z.literal('delete-task'),
+    taskId: z.string()
+});
+
 // KV batch update schema for real-time KV updates
 export const ApiKvBatchUpdateSchema = z.object({
     t: z.literal('kv-batch-update'),
@@ -113,7 +145,9 @@ export const ApiKvBatchUpdateSchema = z.object({
     }))
 });
 
-export const ApiUpdateSchema = z.discriminatedUnion('t', [
+// z.union instead of z.discriminatedUnion: compiled wire package exports
+// lose Zod discriminator metadata, causing runtime extraction failures.
+export const ApiUpdateSchema = z.union([
     ApiUpdateNewMessageSchema,
     ApiUpdateNewSessionSchema,
     ApiDeleteSessionSchema,
@@ -124,6 +158,9 @@ export const ApiUpdateSchema = z.discriminatedUnion('t', [
     ApiNewArtifactSchema,
     ApiUpdateArtifactSchema,
     ApiDeleteArtifactSchema,
+    ApiNewTaskSchema,
+    ApiUpdateTaskSchema,
+    ApiDeleteTaskSchema,
     ApiRelationshipUpdatedSchema,
     ApiNewFeedPostSchema,
     ApiKvBatchUpdateSchema

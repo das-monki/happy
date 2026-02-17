@@ -49,6 +49,7 @@ model Account {
     RelationshipsFrom   UserRelationship[]    @relation("RelationshipsFrom")
     RelationshipsTo     UserRelationship[]    @relation("RelationshipsTo")
     Artifact            Artifact[]
+    Task                Task[]
     AccessKey           AccessKey[]
     UserFeedItem        UserFeedItem[]
     UserKVStore         UserKVStore[]
@@ -95,6 +96,8 @@ model Session {
     tag               String
     accountId         String
     account           Account          @relation(fields: [accountId], references: [id])
+    taskId            String?
+    task              Task?            @relation(fields: [taskId], references: [id])
     metadata          String
     metadataVersion   Int              @default(0)
     agentState        String?
@@ -111,6 +114,7 @@ model Session {
 
     @@unique([accountId, tag])
     @@index([accountId, updatedAt(sort: Desc)])
+    @@index([taskId])
 }
 
 model SessionMessage {
@@ -257,17 +261,59 @@ model ServiceAccountToken {
 //
 
 model Artifact {
-    id                String   @id // UUID provided by client
+    id                String            @id // UUID provided by client
     accountId         String
-    account           Account  @relation(fields: [accountId], references: [id])
+    account           Account           @relation(fields: [accountId], references: [id])
     header            Bytes // Encrypted header (can contain JSON)
-    headerVersion     Int      @default(0)
+    headerVersion     Int               @default(0)
     body              Bytes // Encrypted body
-    bodyVersion       Int      @default(0)
+    bodyVersion       Int               @default(0)
     dataEncryptionKey Bytes // Encryption key for this artifact
-    seq               Int      @default(0)
-    createdAt         DateTime @default(now())
-    updatedAt         DateTime @updatedAt
+    kind              String            @default("artifact") // "artifact" | "task-input" | "task-output"
+    taskId            String?
+    task              Task?             @relation(fields: [taskId], references: [id])
+    sourceSessionId   String?
+    seq               Int               @default(0)
+    createdAt         DateTime          @default(now())
+    updatedAt         DateTime          @updatedAt
+    versions          ArtifactVersion[]
+
+    @@index([accountId])
+    @@index([accountId, updatedAt(sort: Desc)])
+    @@index([taskId])
+}
+
+model ArtifactVersion {
+    id         String   @id @default(cuid())
+    artifactId String
+    artifact   Artifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+    version    Int
+    header     Bytes // Encrypted snapshot (same DEK as parent artifact)
+    body       Bytes // Encrypted snapshot
+    createdAt  DateTime @default(now())
+
+    @@unique([artifactId, version])
+    @@index([artifactId])
+}
+
+//
+// Tasks
+//
+
+model Task {
+    id                String     @id // UUID provided by client
+    accountId         String
+    account           Account    @relation(fields: [accountId], references: [id])
+    header            Bytes // Encrypted header (title, description, agentKey)
+    headerVersion     Int        @default(0)
+    body              Bytes // Encrypted body (notes, result)
+    bodyVersion       Int        @default(0)
+    dataEncryptionKey Bytes // Per-task DEK, sealed with user public key
+    seq               Int        @default(0)
+    createdAt         DateTime   @default(now())
+    updatedAt         DateTime   @updatedAt
+    sessions          Session[]
+    artifacts         Artifact[]
 
     @@index([accountId])
     @@index([accountId, updatedAt(sort: Desc)])
