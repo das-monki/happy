@@ -74,6 +74,7 @@ export const ca: TranslationStructure = {
     runFailed: "Failed to start session",
     markCompleted: "Mark as Completed",
     markFailed: "Mark as Failed",
+    reopen: "Reobrir tasca",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },

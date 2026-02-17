@@ -20,6 +20,8 @@ export interface TaskHeader {
     title: string | null;
     description: string | null;
     agentKey: string | null; // KV key for agent definition (agent:{uuid})
+    machineId?: string | null; // Preferred machine to run on
+    directory?: string | null; // Working directory on the machine
     status?: 'completed' | 'failed'; // Explicitly set by user
 }
 
@@ -44,6 +46,8 @@ export interface DecryptedTask {
     title: string | null;
     description: string | null;
     agentKey: string | null;
+    machineId?: string | null;
+    directory?: string | null;
     status?: 'completed' | 'failed';
     notes?: string | null; // Only loaded when viewing full task
     result?: string | null; // Only loaded when viewing full task

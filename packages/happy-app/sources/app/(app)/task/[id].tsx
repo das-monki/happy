@@ -223,22 +223,28 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     const { theme } = useUnistyles();
     const router = useRouter();
 
-    // Selected machine & directory for running
+    // Machine & directory: persisted on the task header, local state is optimistic overlay.
+    // A ref ensures we only initialize once per mount.
     const [selectedMachineId, setSelectedMachineId] = React.useState<string | null>(null);
     const [selectedDirectory, setSelectedDirectory] = React.useState<string>('~');
+    const didInit = React.useRef(false);
 
-    // Auto-select the first online machine if none is selected
     React.useEffect(() => {
-        if (selectedMachineId) return;
-        const online = machines.find(m => m.active);
-        if (online) {
-            setSelectedMachineId(online.id);
-            setSelectedDirectory(online.metadata?.homeDir || '~');
+        if (didInit.current) return;
+        if (task?.machineId) {
+            // Task has persisted machine — use it
+            setSelectedMachineId(task.machineId);
+            setSelectedDirectory(task.directory || '~');
+            didInit.current = true;
         } else if (machines.length > 0) {
-            setSelectedMachineId(machines[0].id);
-            setSelectedDirectory(machines[0].metadata?.homeDir || '~');
+            // No persisted machine — auto-select first online machine
+            const online = machines.find(m => m.active);
+            const m = online || machines[0];
+            setSelectedMachineId(m.id);
+            setSelectedDirectory(m.metadata?.homeDir || '~');
+            didInit.current = true;
         }
-    }, [machines, selectedMachineId]);
+    }, [task?.machineId, task?.directory, machines]);
 
     const selectedMachine = React.useMemo(
         () => machines.find(m => m.id === selectedMachineId) ?? null,
@@ -256,6 +262,16 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         return match?.metadata?.path || defaultDir;
     }, [machines, allSessions]);
 
+    /** Shorten an absolute directory path by replacing the home dir prefix with ~ */
+    const displayDirectory = React.useMemo(() => {
+        const homeDir = selectedMachine?.metadata?.homeDir;
+        if (homeDir && selectedDirectory.startsWith(homeDir)) {
+            const rel = selectedDirectory.slice(homeDir.length);
+            return rel ? '~' + rel : '~';
+        }
+        return selectedDirectory;
+    }, [selectedDirectory, selectedMachine?.metadata?.homeDir]);
+
     // Find the agent name from the agentKey
     const agentName = React.useMemo(() => {
         if (!task?.agentKey) return null;
@@ -271,7 +287,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 agents,
                 selectedAgentKey: task?.agentKey ?? null,
                 onSelect: (agentKey: string | null) => {
-                    sync.updateTaskHeader(id!, { agentKey });
+                    sync.updateTaskHeader(id!, { agentKey }).catch(e => console.error('Failed to persist agent:', e));
                 },
             },
         });
@@ -284,12 +300,14 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 machines,
                 selectedMachineId,
                 onSelect: (machine: Machine) => {
+                    const dir = bestDirectoryForMachine(machine.id);
                     setSelectedMachineId(machine.id);
-                    setSelectedDirectory(bestDirectoryForMachine(machine.id));
+                    setSelectedDirectory(dir);
+                    sync.updateTaskHeader(id!, { machineId: machine.id, directory: dir }).catch(e => console.error('Failed to persist machine:', e));
                 },
             },
         });
-    }, [machines, selectedMachineId, bestDirectoryForMachine]);
+    }, [id, machines, selectedMachineId, bestDirectoryForMachine]);
 
     const handlePickDirectory = React.useCallback(() => {
         if (!selectedMachineId) return;
@@ -306,6 +324,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         const trimmed = pathParam.trim();
         if (trimmed && trimmed !== selectedDirectory) {
             setSelectedDirectory(trimmed);
+            sync.updateTaskHeader(id!, { directory: trimmed }).catch(e => console.error('Failed to persist directory:', e));
         }
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
@@ -370,6 +389,11 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     // Mark task as failed
     const [, doFail] = useHappyAction(React.useCallback(async () => {
         await sync.updateTaskHeader(id!, { status: 'failed' });
+    }, [id]));
+
+    // Reopen a completed/failed task (clears explicit status)
+    const [, doReopen] = useHappyAction(React.useCallback(async () => {
+        await sync.updateTaskHeader(id!, { status: null });
     }, [id]));
 
     // Delete task
@@ -439,7 +463,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 />
                 <Item
                     title={t('tasks.fieldDirectory')}
-                    detail={selectedDirectory}
+                    detail={displayDirectory}
                     onPress={selectedMachineId ? handlePickDirectory : undefined}
                 />
             </ItemGroup>
@@ -466,7 +490,13 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
 
             {/* Actions */}
             <ItemGroup>
-                {!isTerminal && (
+                {isTerminal ? (
+                    <Item
+                        title={t('tasks.reopen')}
+                        titleStyle={{ color: '#007AFF', textAlign: 'center' }}
+                        onPress={doReopen}
+                    />
+                ) : (
                     <>
                         <Item
                             title={t('tasks.markCompleted')}

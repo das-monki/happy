@@ -76,6 +76,7 @@ export const zhHant: TranslationStructure = {
     runFailed: "Failed to start session",
     markCompleted: "Mark as Completed",
     markFailed: "Mark as Failed",
+    reopen: "重新開啟任務",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },

@@ -87,6 +87,7 @@ export const ru: TranslationStructure = {
     runFailed: "Failed to start session",
     markCompleted: "Mark as Completed",
     markFailed: "Mark as Failed",
+    reopen: "Возобновить задачу",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
   },

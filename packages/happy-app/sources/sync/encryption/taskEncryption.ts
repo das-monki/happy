@@ -43,7 +43,9 @@ export class TaskEncryption {
                 title: typeof header.title === 'string' ? header.title : null,
                 description: typeof header.description === 'string' ? header.description : null,
                 agentKey: typeof header.agentKey === 'string' ? header.agentKey : null,
-                ...(header.status && { status: header.status })
+                ...(header.machineId && { machineId: header.machineId }),
+                ...(header.directory && { directory: header.directory }),
+                ...(header.status && { status: header.status }),
             };
         } catch (error) {
             console.error('Failed to decrypt task header:', error);

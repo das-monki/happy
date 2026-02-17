@@ -1067,7 +1067,7 @@ class Sync {
         }
     }
 
-    public async createTask(title: string, description: string | null, agentKey: string | null): Promise<string> {
+    public async createTask(title: string, description: string | null, agentKey: string | null, machineId?: string | null, directory?: string | null): Promise<string> {
         if (!this.credentials) {
             throw new Error('Not authenticated');
         }
@@ -1081,7 +1081,7 @@ class Sync {
             const encryptedKey = await this.encryption.encryptEncryptionKey(dataEncryptionKey);
             const taskEncryption = new TaskEncryption(dataEncryptionKey);
 
-            const encryptedHeader = await taskEncryption.encryptHeader({ title, description, agentKey });
+            const encryptedHeader = await taskEncryption.encryptHeader({ title, description, agentKey, machineId, directory });
             const encryptedBody = await taskEncryption.encryptBody({ notes: null, result: null });
 
             const task = await createTaskApi(this.credentials, {
@@ -1096,6 +1096,8 @@ class Sync {
                 title,
                 description,
                 agentKey,
+                machineId,
+                directory,
                 headerVersion: task.headerVersion,
                 bodyVersion: task.bodyVersion,
                 seq: task.seq,
@@ -1131,7 +1133,7 @@ class Sync {
      * Update task header fields (title, description, agentKey, status).
      * Uses optimistic concurrency control via headerVersion.
      */
-    public async updateTaskHeader(taskId: string, updates: { title?: string | null; description?: string | null; agentKey?: string | null; status?: 'completed' | 'failed' }): Promise<void> {
+    public async updateTaskHeader(taskId: string, updates: { title?: string | null; description?: string | null; agentKey?: string | null; machineId?: string | null; directory?: string | null; status?: 'completed' | 'failed' | null }): Promise<void> {
         if (!this.credentials) {
             throw new Error('Not authenticated');
         }
@@ -1151,7 +1153,11 @@ class Sync {
             title: updates.title !== undefined ? updates.title : task.title,
             description: updates.description !== undefined ? updates.description : task.description,
             agentKey: updates.agentKey !== undefined ? updates.agentKey : task.agentKey,
-            ...(updates.status ? { status: updates.status } : (task.status ? { status: task.status } : {})),
+            machineId: updates.machineId !== undefined ? updates.machineId : (task.machineId ?? null),
+            directory: updates.directory !== undefined ? updates.directory : (task.directory ?? null),
+            ...('status' in updates
+                ? (updates.status ? { status: updates.status } : {})
+                : (task.status ? { status: task.status } : {})),
         };
 
         const encryptedHeader = await taskEncryption.encryptHeader(newHeader);
@@ -1167,7 +1173,12 @@ class Sync {
 
         storage.getState().updateTask({
             ...task,
-            ...newHeader,
+            title: newHeader.title,
+            description: newHeader.description,
+            agentKey: newHeader.agentKey,
+            machineId: newHeader.machineId,
+            directory: newHeader.directory,
+            status: newHeader.status,
             headerVersion: result.headerVersion ?? task.headerVersion + 1,
         });
     }
@@ -1205,6 +1216,8 @@ class Sync {
                     title: header?.title || null,
                     description: header?.description || null,
                     agentKey: header?.agentKey || null,
+                    machineId: header?.machineId,
+                    directory: header?.directory,
                     status: header?.status,
                     headerVersion: task.headerVersion,
                     seq: task.seq,
@@ -2374,6 +2387,8 @@ class Sync {
                     updatedTask.title = header?.title || null;
                     updatedTask.description = header?.description || null;
                     updatedTask.agentKey = header?.agentKey || null;
+                    updatedTask.machineId = header?.machineId;
+                    updatedTask.directory = header?.directory;
                     updatedTask.status = header?.status;
                     updatedTask.headerVersion = taskUpdate.header.version;
                 }
