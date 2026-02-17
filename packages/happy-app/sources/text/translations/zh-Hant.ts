@@ -66,6 +66,7 @@ export const zhHant: TranslationStructure = {
     stateCompleted: "Completed",
     stateFailed: "Failed",
     sessions: "Sessions",
+    addSession: "新增會話",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

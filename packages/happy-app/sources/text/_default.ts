@@ -66,6 +66,7 @@ export const en = {
     stateFailed: "Failed",
     // Task detail & execution
     sessions: "Sessions",
+    addSession: "Add Session",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

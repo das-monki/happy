@@ -64,6 +64,7 @@ export const ca: TranslationStructure = {
     stateCompleted: "Completed",
     stateFailed: "Failed",
     sessions: "Sessions",
+    addSession: "Afegir sessió",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

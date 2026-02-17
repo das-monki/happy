@@ -40,9 +40,15 @@ function stateColor(state: TaskState): string {
 }
 
 /**
- * Renders a linked session row with name, active status, and navigation.
+ * Renders a linked session row with name, agent label, active status, and navigation.
  */
-const LinkedSessionRow = React.memo(function LinkedSessionRow({ session }: { session: Session }) {
+const LinkedSessionRow = React.memo(function LinkedSessionRow({
+    session,
+    agentLabel,
+}: {
+    session: Session;
+    agentLabel: string | null;
+}) {
     const { theme } = useUnistyles();
     const router = useRouter();
 
@@ -52,6 +58,7 @@ const LinkedSessionRow = React.memo(function LinkedSessionRow({ session }: { ses
     return (
         <Item
             title={name}
+            subtitle={agentLabel || undefined}
             detail={isActive ? t('tasks.sessionActive') : t('tasks.sessionInactive')}
             detailStyle={{ color: isActive ? '#34C759' : theme.colors.textSecondary }}
             icon={<Ionicons name="terminal-outline" size={20} color={isActive ? '#34C759' : theme.colors.textSecondary} />}
@@ -61,30 +68,36 @@ const LinkedSessionRow = React.memo(function LinkedSessionRow({ session }: { ses
 });
 
 /**
- * Modal component for selecting an agent from the available list.
- * Includes a "No Agent" option for running without a prompt template.
+ * Returns the display name for a machine: displayName > host > truncated id.
  */
-const AgentPickerModal = React.memo(function AgentPickerModal({
+function machineName(machine: Machine): string {
+    return machine.metadata?.displayName || machine.metadata?.host || machine.id.slice(0, 8);
+}
+
+/**
+ * Modal for creating a new session on the task.
+ * Shows agent picker list, then a Create/Cancel button row.
+ */
+const AddSessionModal = React.memo(function AddSessionModal({
     agents,
-    selectedAgentKey,
-    onSelect,
+    onCreateSession,
     onClose,
 }: {
-    agents: { id: string; name: string; description: string }[];
-    selectedAgentKey: string | null;
-    onSelect: (agentKey: string | null) => void;
+    agents: { id: string; name: string; description: string; promptTemplate: string }[];
+    onCreateSession: (agentKey: string | null) => void;
     onClose: () => void;
 }) {
     const { theme } = useUnistyles();
+    const [selectedAgentKey, setSelectedAgentKey] = React.useState<string | null>(null);
 
     return (
         <View style={pickerStyles.container}>
             <Text style={[pickerStyles.title, { color: theme.colors.text }]}>
-                {t('tasks.fieldAgent')}
+                {t('tasks.addSession')}
             </Text>
             <ScrollView style={pickerStyles.list} bounces={false}>
                 <Pressable
-                    onPress={() => { onSelect(null); onClose(); }}
+                    onPress={() => setSelectedAgentKey(null)}
                     style={({ pressed }) => [
                         pickerStyles.row,
                         { backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent' },
@@ -99,11 +112,12 @@ const AgentPickerModal = React.memo(function AgentPickerModal({
                     )}
                 </Pressable>
                 {agents.map(agent => {
-                    const isSelected = selectedAgentKey === `agent:${agent.id}`;
+                    const key = `agent:${agent.id}`;
+                    const isSelected = selectedAgentKey === key;
                     return (
                         <Pressable
                             key={agent.id}
-                            onPress={() => { onSelect(`agent:${agent.id}`); onClose(); }}
+                            onPress={() => setSelectedAgentKey(key)}
                             style={({ pressed }) => [
                                 pickerStyles.row,
                                 { backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent' },
@@ -127,27 +141,31 @@ const AgentPickerModal = React.memo(function AgentPickerModal({
                     );
                 })}
             </ScrollView>
-            <Pressable
-                onPress={onClose}
-                style={({ pressed }) => [
-                    pickerStyles.cancelButton,
-                    { opacity: pressed ? 0.7 : 1 },
-                ]}
-            >
-                <Text style={[pickerStyles.cancelText, { color: '#007AFF' }]}>
-                    {t('common.cancel')}
-                </Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
+                <Pressable
+                    onPress={onClose}
+                    style={({ pressed }) => [
+                        { flex: 1, paddingVertical: 14, borderRightWidth: 0.5, borderRightColor: theme.colors.divider, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                >
+                    <Text style={{ fontSize: 17, textAlign: 'center', color: '#007AFF' }}>
+                        {t('common.cancel')}
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => { onCreateSession(selectedAgentKey); onClose(); }}
+                    style={({ pressed }) => [
+                        { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
+                    ]}
+                >
+                    <Text style={{ fontSize: 17, fontWeight: '600', textAlign: 'center', color: '#007AFF' }}>
+                        {t('common.create')}
+                    </Text>
+                </Pressable>
+            </View>
         </View>
     );
 });
-
-/**
- * Returns the display name for a machine: displayName > host > truncated id.
- */
-function machineName(machine: Machine): string {
-    return machine.metadata?.displayName || machine.metadata?.host || machine.id.slice(0, 8);
-}
 
 /**
  * Modal component for selecting a machine from the available list.
@@ -341,26 +359,14 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         return selectedDirectory;
     }, [selectedDirectory, selectedMachine?.metadata?.homeDir]);
 
-    // Find the agent name from the agentKey
-    const agentName = React.useMemo(() => {
-        if (!task?.agentKey) return null;
-        const agentId = task.agentKey.replace('agent:', '');
-        const agent = agents.find(a => a.id === agentId);
-        return agent?.name ?? agentId;
-    }, [task?.agentKey, agents]);
-
-    const handlePickAgent = React.useCallback(() => {
-        Modal.show({
-            component: AgentPickerModal,
-            props: {
-                agents,
-                selectedAgentKey: task?.agentKey ?? null,
-                onSelect: (agentKey: string | null) => {
-                    sync.updateTaskHeader(id!, { agentKey }).catch(e => console.error('Failed to persist agent:', e));
-                },
-            },
-        });
-    }, [id, agents, task?.agentKey]);
+    /** Map from agent key to agent name for displaying on session rows */
+    const agentNameMap = React.useMemo(() => {
+        const map = new Map<string, string>();
+        for (const a of agents) {
+            map.set(`agent:${a.id}`, a.name);
+        }
+        return map;
+    }, [agents]);
 
     const handlePickMachine = React.useCallback(() => {
         Modal.show({
@@ -397,8 +403,8 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         }
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
-    // Run task on the selected machine
-    const [running, doRun] = useHappyAction(React.useCallback(async () => {
+    // Spawn a session with a given agent
+    const doCreateSession = React.useCallback(async (agentKey: string | null) => {
         if (!task) return;
 
         if (!selectedMachineId) {
@@ -412,22 +418,20 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             return;
         }
 
-        // Find agent prompt template if an agent is assigned
+        // Build prompt from agent template or just title+description
         let promptTemplate = '';
-        if (task.agentKey) {
-            const agentId = task.agentKey.replace('agent:', '');
+        if (agentKey) {
+            const agentId = agentKey.replace('agent:', '');
             const agent = agents.find(a => a.id === agentId);
             promptTemplate = agent?.promptTemplate || '';
         }
 
-        // Build the prompt that will be sent as the initial message
         const taskPrompt = promptTemplate
             ? promptTemplate
                 .replace('{{title}}', task.title || '')
                 .replace('{{description}}', task.description || '')
             : `${task.title || ''}${task.description ? '\n\n' + task.description : ''}`;
 
-        // Spawn a new session on the machine, linked to this task
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
             directory: selectedDirectory,
@@ -438,18 +442,30 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         if ('sessionId' in result && result.sessionId) {
             await sync.refreshSessions();
 
-            // Send the task prompt as the initial message
             if (taskPrompt.trim()) {
                 await sync.sendMessage(result.sessionId, taskPrompt);
             }
 
-            // Navigate to the session
             router.push(`/session/${result.sessionId}`);
         } else {
             const errorMsg = 'errorMessage' in result ? result.errorMessage : t('tasks.runFailed');
             throw new Error(errorMsg);
         }
-    }, [task, selectedMachineId, selectedDirectory, agents, router]));
+    }, [task, selectedMachineId, selectedDirectory, agents, router, id]);
+
+    const handleAddSession = React.useCallback(() => {
+        Modal.show({
+            component: AddSessionModal,
+            props: {
+                agents,
+                onCreateSession: (agentKey: string | null) => {
+                    doCreateSession(agentKey).catch(e => {
+                        Modal.alert(t('common.error'), e instanceof Error ? e.message : t('tasks.runFailed'));
+                    });
+                },
+            },
+        });
+    }, [agents, doCreateSession]);
 
     // Mark task as completed
     const [, doComplete] = useHappyAction(React.useCallback(async () => {
@@ -540,11 +556,6 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             {/* Execution config */}
             <ItemGroup>
                 <Item
-                    title={t('tasks.fieldAgent')}
-                    detail={agentName || t('tasks.noAgent')}
-                    onPress={handlePickAgent}
-                />
-                <Item
                     title={t('tasks.fieldMachine')}
                     detail={selectedMachine ? `${machineName(selectedMachine)}${selectedMachine.active ? '' : ` (${t('status.offline')})`}` : t('tasks.noMachines')}
                     detailStyle={selectedMachine && !selectedMachine.active ? { color: '#FF3B30' } : undefined}
@@ -557,25 +568,23 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                 />
             </ItemGroup>
 
-            {/* Run button */}
-            {!isTerminal && (
-                <ItemGroup>
-                    <Item
-                        title={running ? t('tasks.running') : t('tasks.run')}
-                        titleStyle={{ color: '#007AFF', textAlign: 'center' }}
-                        onPress={doRun}
+            {/* Sessions list with Add Session button */}
+            <ItemGroup title={t('tasks.sessions')}>
+                {linkedSessions.map(session => (
+                    <LinkedSessionRow
+                        key={session.id}
+                        session={session}
+                        agentLabel={task.agentKey ? (agentNameMap.get(task.agentKey) ?? null) : null}
                     />
-                </ItemGroup>
-            )}
-
-            {/* Linked sessions */}
-            {linkedSessions.length > 0 && (
-                <ItemGroup title={t('tasks.sessions')}>
-                    {linkedSessions.map(session => (
-                        <LinkedSessionRow key={session.id} session={session} />
-                    ))}
-                </ItemGroup>
-            )}
+                ))}
+                {!isTerminal && (
+                    <Item
+                        title={t('tasks.addSession')}
+                        titleStyle={{ color: '#007AFF', textAlign: 'center' }}
+                        onPress={handleAddSession}
+                    />
+                )}
+            </ItemGroup>
 
             {/* Actions */}
             <ItemGroup>

@@ -4,7 +4,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
-import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { sync } from '@/sync/sync';
 import { useAllMachines, useAllSessions } from '@/sync/storage';
@@ -21,87 +20,6 @@ import type { Machine } from '@/sync/storageTypes';
 function machineName(machine: Machine): string {
     return machine.metadata?.displayName || machine.metadata?.host || machine.id.slice(0, 8);
 }
-
-/**
- * Modal component for selecting an agent.
- */
-const AgentPickerModal = React.memo(function AgentPickerModal({
-    agents,
-    selectedAgentKey,
-    onSelect,
-    onClose,
-}: {
-    agents: { id: string; name: string; description: string }[];
-    selectedAgentKey: string | null;
-    onSelect: (agentKey: string | null) => void;
-    onClose: () => void;
-}) {
-    const { theme } = useUnistyles();
-
-    return (
-        <View style={pickerStyles.container}>
-            <Text style={[pickerStyles.title, { color: theme.colors.text }]}>
-                {t('tasks.fieldAgent')}
-            </Text>
-            <ScrollView style={pickerStyles.list} bounces={false}>
-                <Pressable
-                    onPress={() => { onSelect(null); onClose(); }}
-                    style={({ pressed }) => [
-                        pickerStyles.row,
-                        { backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent' },
-                    ]}
-                >
-                    <Ionicons name="close-circle-outline" size={20} color={theme.colors.textSecondary} />
-                    <Text style={[pickerStyles.rowText, { color: theme.colors.text }]}>
-                        {t('tasks.noAgent')}
-                    </Text>
-                    {!selectedAgentKey && (
-                        <Ionicons name="checkmark" size={20} color="#007AFF" />
-                    )}
-                </Pressable>
-                {agents.map(agent => {
-                    const isSelected = selectedAgentKey === `agent:${agent.id}`;
-                    return (
-                        <Pressable
-                            key={agent.id}
-                            onPress={() => { onSelect(`agent:${agent.id}`); onClose(); }}
-                            style={({ pressed }) => [
-                                pickerStyles.row,
-                                { backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent' },
-                            ]}
-                        >
-                            <Ionicons name="hardware-chip-outline" size={20} color="#FF6B35" />
-                            <View style={{ flex: 1 }}>
-                                <Text style={[pickerStyles.rowText, { color: theme.colors.text }]} numberOfLines={1}>
-                                    {agent.name}
-                                </Text>
-                                {agent.description ? (
-                                    <Text style={{ fontSize: 13, color: theme.colors.textSecondary }} numberOfLines={1}>
-                                        {agent.description}
-                                    </Text>
-                                ) : null}
-                            </View>
-                            {isSelected && (
-                                <Ionicons name="checkmark" size={20} color="#007AFF" />
-                            )}
-                        </Pressable>
-                    );
-                })}
-            </ScrollView>
-            <Pressable
-                onPress={onClose}
-                style={({ pressed }) => [
-                    pickerStyles.cancelButton,
-                    { opacity: pressed ? 0.7 : 1 },
-                ]}
-            >
-                <Text style={[pickerStyles.cancelText, { color: '#007AFF' }]}>
-                    {t('common.cancel')}
-                </Text>
-            </Pressable>
-        </View>
-    );
-});
 
 /**
  * Modal component for selecting a machine.
@@ -168,12 +86,10 @@ const MachinePickerModal = React.memo(function MachinePickerModal({
 const TaskCreateScreen = React.memo(function TaskCreateScreen() {
     const { theme } = useUnistyles();
     const router = useRouter();
-    const { agents } = useAgentDefinitions();
     const machines = useAllMachines();
     const allSessions = useAllSessions();
     const [title, setTitle] = React.useState('');
     const [description, setDescription] = React.useState('');
-    const [selectedAgentKey, setSelectedAgentKey] = React.useState<string | null>(null);
     const [selectedMachineId, setSelectedMachineId] = React.useState<string | null>(null);
     const [selectedDirectory, setSelectedDirectory] = React.useState<string>('~');
 
@@ -216,27 +132,6 @@ const TaskCreateScreen = React.memo(function TaskCreateScreen() {
         return selectedDirectory;
     }, [selectedDirectory, selectedMachine?.metadata?.homeDir]);
 
-    // Agent display name
-    const agentName = React.useMemo(() => {
-        if (!selectedAgentKey) return null;
-        const agentId = selectedAgentKey.replace('agent:', '');
-        const agent = agents.find(a => a.id === agentId);
-        return agent?.name ?? agentId;
-    }, [selectedAgentKey, agents]);
-
-    const handlePickAgent = React.useCallback(() => {
-        Modal.show({
-            component: AgentPickerModal,
-            props: {
-                agents,
-                selectedAgentKey,
-                onSelect: (agentKey: string | null) => {
-                    setSelectedAgentKey(agentKey);
-                },
-            },
-        });
-    }, [agents, selectedAgentKey]);
-
     const handlePickMachine = React.useCallback(() => {
         Modal.show({
             component: MachinePickerModal,
@@ -274,12 +169,12 @@ const TaskCreateScreen = React.memo(function TaskCreateScreen() {
         await sync.createTask(
             title.trim(),
             description.trim() || null,
-            selectedAgentKey,
+            null,
             selectedMachineId,
             selectedDirectory
         );
         router.back();
-    }, [title, description, selectedAgentKey, selectedMachineId, selectedDirectory, router]));
+    }, [title, description, selectedMachineId, selectedDirectory, router]));
 
     return (
         <ItemList style={{ paddingTop: 0 }}>
@@ -310,11 +205,6 @@ const TaskCreateScreen = React.memo(function TaskCreateScreen() {
 
             {/* Execution config */}
             <ItemGroup>
-                <Item
-                    title={t('tasks.fieldAgent')}
-                    detail={agentName || t('tasks.noAgent')}
-                    onPress={handlePickAgent}
-                />
                 <Item
                     title={t('tasks.fieldMachine')}
                     detail={selectedMachine ? `${machineName(selectedMachine)}${selectedMachine.active ? '' : ` (${t('status.offline')})`}` : t('tasks.noMachines')}
