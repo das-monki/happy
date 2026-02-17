@@ -7,7 +7,10 @@ const config = getDefaultConfig(__dirname, {
 
 // Add support for .wasm files (required by Skia for all platforms)
 // Source: https://shopify.github.io/react-native-skia/docs/getting-started/installation/
-config.resolver.assetExts.push('wasm');
+config.resolver.assetExts.push("wasm");
+
+// Add support for Whisper model files (.bin for ggml models, .mil for CoreML models)
+config.resolver.assetExts.push("bin", "mil");
 
 // Enable inlineRequires for proper Skia and Reanimated loading
 // Source: https://shopify.github.io/react-native-skia/docs/getting-started/web/
