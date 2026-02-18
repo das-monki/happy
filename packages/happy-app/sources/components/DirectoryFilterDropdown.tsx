@@ -1,24 +1,30 @@
 import * as React from 'react';
-import { View, Text, Pressable, Platform, UIManager } from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
 import { FloatingOverlay } from './FloatingOverlay';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
 
-// Check if the ExpoUI ContextMenu native view is actually registered in this binary.
-const hasNativeContextMenu = Platform.OS !== 'web' &&
-    !!UIManager.getViewManagerConfig('ViewManagerAdapter_ExpoUI_ContextMenu');
-
-// Only load the native modules if the native view is available.
-let NativeContextMenu: any = null;
-let NativePicker: any = null;
-if (hasNativeContextMenu) {
+// Load @expo/ui native components on iOS for native UIMenu appearance.
+let ExpoContextMenu: any = null;
+let ExpoButton: any = null;
+let ExpoHost: any = null;
+let expoFixedSize: any = null;
+let expoButtonStyle: any = null;
+let expoFrame: any = null;
+if (Platform.OS === 'ios') {
     try {
-        NativeContextMenu = require('@expo/ui/src/swift-ui/ContextMenu').ContextMenu;
-        NativePicker = require('@expo/ui/src/swift-ui/Picker').Picker;
+        const ui = require('@expo/ui/swift-ui');
+        const modifiers = require('@expo/ui/swift-ui/modifiers');
+        ExpoContextMenu = ui.ContextMenu;
+        ExpoButton = ui.Button;
+        ExpoHost = ui.Host;
+        expoFixedSize = modifiers.fixedSize;
+        expoButtonStyle = modifiers.buttonStyle;
+        expoFrame = modifiers.frame;
     } catch {
-        NativeContextMenu = null;
+        ExpoContextMenu = null;
     }
 }
 
@@ -35,57 +41,92 @@ interface DirectoryFilterDropdownProps {
 }
 
 /**
- * Native implementation using @expo/ui ContextMenu + Picker.
+ * iOS implementation using @expo/ui ContextMenu for native UIMenu appearance.
  */
-const NativeDropdown = React.memo(function NativeDropdown({
+class NativeDropdownErrorBoundary extends React.Component<
+    { fallback: React.ReactNode; children: React.ReactNode },
+    { hasError: boolean; error: any }
+> {
+    state = { hasError: false, error: null };
+    static getDerivedStateFromError(error: any) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error: any, info: any) {
+        console.log('[DirectoryFilter] ContextMenu crash:', error, info?.componentStack);
+    }
+    render() {
+        if (this.state.hasError) return this.props.fallback;
+        return this.props.children;
+    }
+}
+
+const NativeDropdownInner = React.memo(function NativeDropdownInner({
     directories,
     selected,
     onSelect,
     children,
 }: DirectoryFilterDropdownProps) {
-    const ContextMenu = NativeContextMenu;
-    const Picker = NativePicker;
-
-    const options = React.useMemo(() => {
-        return [t('tasks.filterAll'), ...directories.map(d => d.displayName)];
-    }, [directories]);
-
-    const selectedIndex = React.useMemo(() => {
-        if (selected === null) return 0;
-        const idx = directories.findIndex(d => d.directory === selected);
-        return idx === -1 ? 0 : idx + 1;
-    }, [selected, directories]);
-
-    const handleOptionSelected = React.useCallback((event: { nativeEvent: { index: number; label: string } }) => {
-        const idx = event.nativeEvent.index;
-        if (idx === 0) {
-            onSelect(null);
-        } else {
-            const dir = directories[idx - 1];
-            if (dir) {
-                onSelect(dir.directory);
-            }
-        }
-    }, [onSelect, directories]);
+    const ContextMenu = ExpoContextMenu;
+    const Button = ExpoButton;
+    const Host = ExpoHost;
 
     return (
-        <ContextMenu activationMethod="singlePress">
-            <ContextMenu.Trigger>
-                {children}
-            </ContextMenu.Trigger>
-            <ContextMenu.Items>
-                <Picker
-                    options={options}
-                    selectedIndex={selectedIndex}
-                    onOptionSelected={handleOptionSelected}
-                />
-            </ContextMenu.Items>
-        </ContextMenu>
+        <View>
+            {children}
+            <Host
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.02 }}
+                useViewportSizeMeasurement
+            >
+                <ContextMenu
+                    activationMethod="singlePress"
+                    modifiers={[
+                        expoFrame({ maxWidth: 99999, maxHeight: 99999 }),
+                        expoButtonStyle('bordered'),
+                    ]}
+                >
+                    <ContextMenu.Items>
+                        <Button
+                            systemImage={selected === null ? 'checkmark' : undefined}
+                            onPress={() => onSelect(null)}
+                        >
+                            {t('tasks.filterAll')}
+                        </Button>
+                        {directories.map((dir) => (
+                            <Button
+                                key={dir.directory}
+                                systemImage={selected === dir.directory ? 'checkmark' : undefined}
+                                onPress={() => onSelect(dir.directory)}
+                            >
+                                {dir.displayName}
+                            </Button>
+                        ))}
+                    </ContextMenu.Items>
+                    <ContextMenu.Trigger>
+                        <Button
+                            variant="plain"
+                            modifiers={[expoFrame({ maxWidth: 99999, maxHeight: 99999 })]}
+                        >
+                            {' '}
+                        </Button>
+                    </ContextMenu.Trigger>
+                </ContextMenu>
+            </Host>
+        </View>
+    );
+});
+
+const NativeDropdown = React.memo(function NativeDropdown(props: DirectoryFilterDropdownProps) {
+    return (
+        <NativeDropdownErrorBoundary fallback={<CustomDropdown {...props} />}>
+            <View style={{ alignItems: 'center' }}>
+                <NativeDropdownInner {...props} />
+            </View>
+        </NativeDropdownErrorBoundary>
     );
 });
 
 /**
- * Custom fallback dropdown using FloatingOverlay.
+ * Fallback dropdown using FloatingOverlay (Android / web).
  */
 const CustomDropdown = React.memo(function CustomDropdown({
     directories,
@@ -131,7 +172,7 @@ const CustomDropdown = React.memo(function CustomDropdown({
                                 onPress={handleSelectAll}
                                 style={({ pressed }) => [
                                     styles.row,
-                                    pressed && Platform.OS === 'ios' && { backgroundColor: theme.colors.surfacePressedOverlay },
+                                    pressed && { backgroundColor: theme.colors.surfacePressedOverlay },
                                 ]}
                             >
                                 <Text style={[styles.rowText, { color: theme.colors.text }]}>
@@ -147,7 +188,7 @@ const CustomDropdown = React.memo(function CustomDropdown({
                                     onPress={() => handleSelectDirectory(dir.directory)}
                                     style={({ pressed }) => [
                                         styles.row,
-                                        pressed && Platform.OS === 'ios' && { backgroundColor: theme.colors.surfacePressedOverlay },
+                                        pressed && { backgroundColor: theme.colors.surfacePressedOverlay },
                                     ]}
                                 >
                                     <Text
@@ -169,7 +210,7 @@ const CustomDropdown = React.memo(function CustomDropdown({
     );
 });
 
-export const DirectoryFilterDropdown = NativeContextMenu ? NativeDropdown : CustomDropdown;
+export const DirectoryFilterDropdown = ExpoContextMenu ? NativeDropdown : CustomDropdown;
 
 const styles = StyleSheet.create((theme) => ({
     wrapper: {
