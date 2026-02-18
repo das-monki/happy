@@ -81,6 +81,12 @@ export const ja: TranslationStructure = {
     reopen: "タスクを再開",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count}件のアクティブなセッションが停止されます。セッション履歴は保持されます。`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count}件のアクティブなセッションが停止され、すべてのセッションデータが完全に削除されます。「${name}」を削除してもよろしいですか？`,
+    completeTitle: "タスクを完了",
+    completeConfirm: "完了",
+    failTitle: "失敗としてマーク",
+    failConfirm: "失敗にする",
   },
 
   common: {

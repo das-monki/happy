@@ -95,6 +95,12 @@ export const en: TranslationStructure = {
     reopen: "Reopen Task",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} active session(s) will be stopped. Session history will be preserved.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} active session(s) will be stopped and all session data permanently deleted. Are you sure you want to delete "${name}"?`,
+    completeTitle: "Complete Task",
+    completeConfirm: "Complete",
+    failTitle: "Mark as Failed",
+    failConfirm: "Mark Failed",
   },
 
   common: {

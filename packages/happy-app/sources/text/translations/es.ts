@@ -78,6 +78,12 @@ export const es: TranslationStructure = {
     reopen: "Reabrir tarea",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `Se detendrán ${count} sesión(es) activa(s). El historial de sesiones se conservará.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `Se detendrán ${count} sesión(es) activa(s) y todos los datos de sesión se eliminarán permanentemente. ¿Estás seguro de que quieres eliminar "${name}"?`,
+    completeTitle: "Completar tarea",
+    completeConfirm: "Completar",
+    failTitle: "Marcar como fallida",
+    failConfirm: "Marcar fallida",
   },
 
   common: {

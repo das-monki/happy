@@ -78,6 +78,12 @@ export const it: TranslationStructure = {
     reopen: "Riapri attività",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} sessione/i attiva/e verranno interrotte. La cronologia delle sessioni verrà conservata.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} sessione/i attiva/e verranno interrotte e tutti i dati delle sessioni verranno eliminati permanentemente. Sei sicuro di voler eliminare "${name}"?`,
+    completeTitle: "Completa attività",
+    completeConfirm: "Completa",
+    failTitle: "Segna come fallita",
+    failConfirm: "Segna fallita",
   },
 
   common: {

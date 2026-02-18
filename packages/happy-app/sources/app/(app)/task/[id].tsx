@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
 import { sync } from '@/sync/sync';
-import { machineSpawnNewSession } from '@/sync/ops';
+import { machineSpawnNewSession, sessionKill, sessionDelete } from '@/sync/ops';
 import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { Modal } from '@/modal';
@@ -467,39 +467,76 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         });
     }, [agents, doCreateSession]);
 
-    // Mark task as completed
-    const [, doComplete] = useHappyAction(React.useCallback(async () => {
-        await sync.updateTaskHeader(id!, { status: 'completed' });
-    }, [id]));
+    // Mark task as completed — archive active sessions first
+    const handleComplete = React.useCallback(() => {
+        const activeSessions = linkedSessions.filter(s => s.active);
+        if (activeSessions.length > 0) {
+            Modal.alert(
+                t('tasks.completeTitle'),
+                t('tasks.archiveSessionsWarning', { count: activeSessions.length }),
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('tasks.completeConfirm'), style: 'destructive', onPress: async () => {
+                        for (const s of activeSessions) await sessionKill(s.id);
+                        await sync.updateTaskHeader(id!, { status: 'completed' });
+                    }},
+                ]
+            );
+        } else {
+            sync.updateTaskHeader(id!, { status: 'completed' });
+        }
+    }, [id, linkedSessions]);
 
-    // Mark task as failed
-    const [, doFail] = useHappyAction(React.useCallback(async () => {
-        await sync.updateTaskHeader(id!, { status: 'failed' });
-    }, [id]));
+    // Mark task as failed — archive active sessions first
+    const handleFail = React.useCallback(() => {
+        const activeSessions = linkedSessions.filter(s => s.active);
+        if (activeSessions.length > 0) {
+            Modal.alert(
+                t('tasks.failTitle'),
+                t('tasks.archiveSessionsWarning', { count: activeSessions.length }),
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('tasks.failConfirm'), style: 'destructive', onPress: async () => {
+                        for (const s of activeSessions) await sessionKill(s.id);
+                        await sync.updateTaskHeader(id!, { status: 'failed' });
+                    }},
+                ]
+            );
+        } else {
+            sync.updateTaskHeader(id!, { status: 'failed' });
+        }
+    }, [id, linkedSessions]);
 
     // Reopen a completed/failed task (clears explicit status)
     const [, doReopen] = useHappyAction(React.useCallback(async () => {
         await sync.updateTaskHeader(id!, { status: null });
     }, [id]));
 
-    // Delete task
+    // Delete task — kill active sessions, delete all linked sessions, then remove task
     const handleDelete = React.useCallback(() => {
+        const activeSessions = linkedSessions.filter(s => s.active);
+        const warningMsg = activeSessions.length > 0
+            ? t('tasks.deleteWithSessionsWarning', { count: activeSessions.length, name: task?.title || t('tasks.untitled') })
+            : t('tasks.deleteMessage', { name: task?.title || t('tasks.untitled') });
+
         Modal.alert(
             t('tasks.deleteTitle'),
-            t('tasks.deleteMessage', { name: task?.title || t('tasks.untitled') }),
+            warningMsg,
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
                     text: t('common.delete'),
                     style: 'destructive',
                     onPress: async () => {
+                        for (const s of activeSessions) await sessionKill(s.id);
+                        for (const s of linkedSessions) await sessionDelete(s.id);
                         await sync.removeTask(id!);
                         router.back();
                     }
                 }
             ]
         );
-    }, [id, task, router]);
+    }, [id, linkedSessions, task, router]);
 
     const handleEditTitle = React.useCallback(() => {
         Modal.show({
@@ -599,12 +636,12 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                         <Item
                             title={t('tasks.markCompleted')}
                             titleStyle={{ color: '#34C759', textAlign: 'center' }}
-                            onPress={doComplete}
+                            onPress={handleComplete}
                         />
                         <Item
                             title={t('tasks.markFailed')}
                             titleStyle={{ color: '#FF9500', textAlign: 'center' }}
-                            onPress={doFail}
+                            onPress={handleFail}
                         />
                     </>
                 )}

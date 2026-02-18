@@ -80,6 +80,12 @@ export const zhHans: TranslationStructure = {
     reopen: "重新打开任务",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} 个活跃会话将被停止。会话历史记录将被保留。`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} 个活跃会话将被停止，所有会话数据将被永久删除。确定要删除"${name}"吗？`,
+    completeTitle: "完成任务",
+    completeConfirm: "完成",
+    failTitle: "标记为失败",
+    failConfirm: "标记失败",
   },
 
   common: {

@@ -91,6 +91,12 @@ export const ru: TranslationStructure = {
     reopen: "Возобновить задачу",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} активных сессий будет остановлено. История сессий будет сохранена.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} активных сессий будет остановлено, и все данные сессий будут безвозвратно удалены. Вы уверены, что хотите удалить "${name}"?`,
+    completeTitle: "Завершить задачу",
+    completeConfirm: "Завершить",
+    failTitle: "Отметить как неудачную",
+    failConfirm: "Отметить неудачной",
   },
 
   common: {

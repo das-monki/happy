@@ -91,6 +91,12 @@ export const pl: TranslationStructure = {
     reopen: "Wznów zadanie",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} aktywnych sesji zostanie zatrzymanych. Historia sesji zostanie zachowana.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} aktywnych sesji zostanie zatrzymanych, a wszystkie dane sesji zostaną trwale usunięte. Czy na pewno chcesz usunąć "${name}"?`,
+    completeTitle: "Zakończ zadanie",
+    completeConfirm: "Zakończ",
+    failTitle: "Oznacz jako nieudane",
+    failConfirm: "Oznacz jako nieudane",
   },
 
   common: {

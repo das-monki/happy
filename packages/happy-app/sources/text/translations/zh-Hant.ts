@@ -80,6 +80,12 @@ export const zhHant: TranslationStructure = {
     reopen: "重新開啟任務",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `${count} 個活躍的工作階段將被停止。工作階段歷史記錄將被保留。`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} 個活躍的工作階段將被停止，所有工作階段資料將被永久刪除。確定要刪除「${name}」嗎？`,
+    completeTitle: "完成任務",
+    completeConfirm: "完成",
+    failTitle: "標記為失敗",
+    failConfirm: "標記失敗",
   },
 
   common: {

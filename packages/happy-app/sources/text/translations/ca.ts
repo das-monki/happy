@@ -78,6 +78,12 @@ export const ca: TranslationStructure = {
     reopen: "Reobrir tasca",
     deleteTitle: "Delete Task",
     deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) => `S'aturaran ${count} sessió/ns activa/es. L'historial de sessions es conservarà.`,
+    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `S'aturaran ${count} sessió/ns activa/es i totes les dades de sessió s'eliminaran permanentment. Estàs segur que vols eliminar "${name}"?`,
+    completeTitle: "Completar tasca",
+    completeConfirm: "Completar",
+    failTitle: "Marcar com a fallida",
+    failConfirm: "Marcar fallida",
   },
 
   common: {
