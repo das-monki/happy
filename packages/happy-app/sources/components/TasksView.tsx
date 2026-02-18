@@ -7,10 +7,10 @@ import { useTasks, useTaskState } from '@/sync/storage';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
-import { Ionicons } from '@expo/vector-icons';
+
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
-import { layout } from '@/components/layout';
+
 import type { DecryptedTask, TaskState } from '@/sync/taskTypes';
 
 /** Extract project name from the task directory (last path segment). */
@@ -49,12 +49,11 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
     const router = useRouter();
     const state = useTaskState(task.id);
     const badge = getStateBadge(state, theme);
-    const project = projectName(task);
 
     return (
         <Item
             title={task.title || t('tasks.untitled')}
-            subtitle={project || task.description || undefined}
+            subtitle={task.description || undefined}
             subtitleLines={1}
             rightElement={
                 <View style={styles.badgeRow}>
@@ -71,6 +70,20 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
 export const TasksView = React.memo(function TasksView() {
     const { theme } = useUnistyles();
     const tasks = useTasks();
+
+    /** Group tasks by directory, sorted alphabetically by display name. */
+    const groups = React.useMemo(() => {
+        const map = new Map<string, { displayName: string; tasks: DecryptedTask[] }>();
+        for (const task of tasks) {
+            const dir = task.directory || '';
+            if (!map.has(dir)) {
+                const name = projectName(task);
+                map.set(dir, { displayName: name || t('tasks.title'), tasks: [] });
+            }
+            map.get(dir)!.tasks.push(task);
+        }
+        return [...map.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }, [tasks]);
 
     if (tasks.length === 0) {
         return (
@@ -92,11 +105,13 @@ export const TasksView = React.memo(function TasksView() {
     return (
         <View style={styles.container}>
             <ItemList style={{ paddingTop: 0 }}>
-                <ItemGroup title={t('tasks.title')}>
-                    {tasks.map(task => (
-                        <TaskRow key={task.id} task={task} />
-                    ))}
-                </ItemGroup>
+                {groups.map((group) => (
+                    <ItemGroup key={group.displayName} title={group.displayName}>
+                        {group.tasks.map(task => (
+                            <TaskRow key={task.id} task={task} />
+                        ))}
+                    </ItemGroup>
+                ))}
             </ItemList>
         </View>
     );
