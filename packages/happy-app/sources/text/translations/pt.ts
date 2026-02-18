@@ -89,6 +89,7 @@ export const pt: TranslationStructure = {
     archive: "Arquivar",
     archiveConfirmTitle: "Arquivar tarefa",
     archiveConfirmMessage: "Esta tarefa será movida para o arquivo.",
+    archivedGroup: "Arquivadas",
   },
 
   common: {
@@ -274,6 +275,9 @@ export const pt: TranslationStructure = {
     showFlavorIcons: "Mostrar ícones de provedores de IA",
     showFlavorIconsDescription:
       "Exibir ícones do provedor de IA nos avatares de sessão",
+    showArchivedTasks: "Mostrar tarefas arquivadas",
+    showArchivedTasksDescription:
+      "Exibir tarefas arquivadas na visualização de tarefas",
     compactSessionView: "Visualização compacta de sessões",
     compactSessionViewDescription:
       "Mostrar sessões ativas em um layout mais compacto",

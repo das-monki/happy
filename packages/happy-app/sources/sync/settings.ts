@@ -348,6 +348,9 @@ export const SettingsSchema = z.object({
   showFlavorIcons: z
     .boolean()
     .describe("Whether to show AI provider icons in avatars"),
+  showArchivedTasks: z
+    .boolean()
+    .describe("Show archived tasks in the Tasks view"),
   compactSessionView: z
     .boolean()
     .describe("Whether to use compact view for active sessions"),
@@ -483,6 +486,7 @@ export const settingsDefaults: Settings = {
   agentInputEnterToSend: true,
   avatarStyle: "brutalist",
   showFlavorIcons: false,
+  showArchivedTasks: false,
   compactSessionView: false,
   hideInactiveSessions: false,
   reviewPromptAnswered: false,

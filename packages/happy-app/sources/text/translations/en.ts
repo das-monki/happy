@@ -106,6 +106,7 @@ export const en: TranslationStructure = {
     archive: "Archive",
     archiveConfirmTitle: "Archive Task",
     archiveConfirmMessage: "This task will be moved to the archive.",
+    archivedGroup: "Archived",
   },
 
   common: {
@@ -285,6 +286,8 @@ export const en: TranslationStructure = {
     },
     showFlavorIcons: "Show AI Provider Icons",
     showFlavorIconsDescription: "Display AI provider icons on session avatars",
+    showArchivedTasks: "Show Archived Tasks",
+    showArchivedTasksDescription: "Display archived tasks in the Tasks view",
     compactSessionView: "Compact Session View",
     compactSessionViewDescription:
       "Show active sessions in a more compact layout",

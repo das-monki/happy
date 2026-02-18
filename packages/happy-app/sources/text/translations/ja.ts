@@ -92,6 +92,7 @@ export const ja: TranslationStructure = {
     archive: "アーカイブ",
     archiveConfirmTitle: "タスクをアーカイブ",
     archiveConfirmMessage: "このタスクはアーカイブに移動されます。",
+    archivedGroup: "アーカイブ済み",
   },
 
   common: {
@@ -320,6 +321,9 @@ export const ja: TranslationStructure = {
     showFlavorIcons: "AIプロバイダーアイコンを表示",
     showFlavorIconsDescription:
       "セッションアバターにAIプロバイダーアイコンを表示",
+    showArchivedTasks: "アーカイブ済みタスクを表示",
+    showArchivedTasksDescription:
+      "タスクビューにアーカイブ済みタスクを表示します",
     compactSessionView: "コンパクトセッション表示",
     compactSessionViewDescription:
       "アクティブなセッションをコンパクトなレイアウトで表示",

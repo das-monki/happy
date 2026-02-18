@@ -89,6 +89,7 @@ export const ca: TranslationStructure = {
     archive: "Arxivar",
     archiveConfirmTitle: "Arxivar tasca",
     archiveConfirmMessage: "Aquesta tasca es mourà a l'arxiu.",
+    archivedGroup: "Arxivades",
   },
 
   common: {
@@ -275,6 +276,9 @@ export const ca: TranslationStructure = {
     showFlavorIcons: "Mostrar icones de proveïdors d'IA",
     showFlavorIconsDescription:
       "Mostrar icones del proveïdor d'IA als avatars de sessió",
+    showArchivedTasks: "Mostra les tasques arxivades",
+    showArchivedTasksDescription:
+      "Mostra les tasques arxivades a la vista de tasques",
     compactSessionView: "Vista compacta de sessions",
     compactSessionViewDescription:
       "Mostra les sessions actives en un disseny més compacte",

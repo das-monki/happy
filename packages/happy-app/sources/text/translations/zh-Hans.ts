@@ -91,6 +91,7 @@ export const zhHans: TranslationStructure = {
     archive: "归档",
     archiveConfirmTitle: "归档任务",
     archiveConfirmMessage: "此任务将被移至归档。",
+    archivedGroup: "已归档",
   },
 
   common: {
@@ -265,6 +266,8 @@ export const zhHans: TranslationStructure = {
     },
     showFlavorIcons: "显示 AI 提供商图标",
     showFlavorIconsDescription: "在会话头像上显示 AI 提供商图标",
+    showArchivedTasks: "显示已归档任务",
+    showArchivedTasksDescription: "在任务视图中显示已归档的任务",
     compactSessionView: "紧凑会话视图",
     compactSessionViewDescription: "以更紧凑的布局显示活跃会话",
   },

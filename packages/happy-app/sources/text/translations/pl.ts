@@ -102,6 +102,7 @@ export const pl: TranslationStructure = {
     archive: "Archiwizuj",
     archiveConfirmTitle: "Archiwizuj zadanie",
     archiveConfirmMessage: "Zadanie zostanie przeniesione do archiwum.",
+    archivedGroup: "Zarchiwizowane",
   },
 
   common: {
@@ -285,6 +286,9 @@ export const pl: TranslationStructure = {
     showFlavorIcons: "Pokaż ikony dostawcy AI",
     showFlavorIconsDescription:
       "Wyświetlaj ikony dostawcy AI na awatarach sesji",
+    showArchivedTasks: "Pokaż zarchiwizowane zadania",
+    showArchivedTasksDescription:
+      "Wyświetlaj zarchiwizowane zadania w widoku zadań",
     compactSessionView: "Kompaktowy widok sesji",
     compactSessionViewDescription:
       "Pokazuj aktywne sesje w bardziej zwartym układzie",

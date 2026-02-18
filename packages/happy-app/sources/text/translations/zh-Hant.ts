@@ -91,6 +91,7 @@ export const zhHant: TranslationStructure = {
     archive: "封存",
     archiveConfirmTitle: "封存任務",
     archiveConfirmMessage: "此任務將被移至封存。",
+    archivedGroup: "已封存",
   },
 
   common: {
@@ -265,6 +266,8 @@ export const zhHant: TranslationStructure = {
     },
     showFlavorIcons: "顯示 AI 提供者圖示",
     showFlavorIconsDescription: "在工作階段頭像上顯示 AI 提供者圖示",
+    showArchivedTasks: "顯示已封存任務",
+    showArchivedTasksDescription: "在任務檢視中顯示已封存的任務",
     compactSessionView: "緊湊工作階段檢視",
     compactSessionViewDescription: "以更緊湊的版面配置顯示活躍工作階段",
   },

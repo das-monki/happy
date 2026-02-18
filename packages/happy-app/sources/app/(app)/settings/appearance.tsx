@@ -30,6 +30,7 @@ export default function AppearanceSettingsScreen() {
     const [alwaysShowContextSize, setAlwaysShowContextSize] = useSettingMutable('alwaysShowContextSize');
     const [avatarStyle, setAvatarStyle] = useSettingMutable('avatarStyle');
     const [showFlavorIcons, setShowFlavorIcons] = useSettingMutable('showFlavorIcons');
+    const [showArchivedTasks, setShowArchivedTasks] = useSettingMutable('showArchivedTasks');
     const [compactSessionView, setCompactSessionView] = useSettingMutable('compactSessionView');
     const [themePreference, setThemePreference] = useLocalSettingMutable('themePreference');
     const [preferredLanguage] = useSettingMutable('preferredLanguage');
@@ -218,6 +219,17 @@ export default function AppearanceSettingsScreen() {
                         <Switch
                             value={showFlavorIcons}
                             onValueChange={setShowFlavorIcons}
+                        />
+                    }
+                />
+                <Item
+                    title={t('settingsAppearance.showArchivedTasks')}
+                    subtitle={t('settingsAppearance.showArchivedTasksDescription')}
+                    icon={<Ionicons name="archive-outline" size={29} color="#5856D6" />}
+                    rightElement={
+                        <Switch
+                            value={showArchivedTasks}
+                            onValueChange={setShowArchivedTasks}
                         />
                     }
                 />

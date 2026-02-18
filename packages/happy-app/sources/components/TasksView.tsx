@@ -5,7 +5,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTasks, useTaskState } from '@/sync/storage';
+import { useTasks, useArchivedTasks, useTaskState, useSetting } from '@/sync/storage';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
@@ -134,6 +134,8 @@ interface TasksViewProps {
 export const TasksView = React.memo(function TasksView({ directoryFilter = null }: TasksViewProps) {
     const { theme } = useUnistyles();
     const tasks = useTasks();
+    const archivedTasks = useArchivedTasks();
+    const showArchivedTasks = useSetting('showArchivedTasks');
 
     /** Group tasks by directory, sorted alphabetically by display name. */
     const groups = React.useMemo(() => {
@@ -152,7 +154,15 @@ export const TasksView = React.memo(function TasksView({ directoryFilter = null 
         return [...map.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
     }, [tasks, directoryFilter]);
 
-    if (tasks.length === 0) {
+    /** Archived tasks filtered by directory. */
+    const filteredArchivedTasks = React.useMemo(() => {
+        if (!showArchivedTasks) return [];
+        return directoryFilter
+            ? archivedTasks.filter(task => task.directory === directoryFilter)
+            : archivedTasks;
+    }, [showArchivedTasks, archivedTasks, directoryFilter]);
+
+    if (tasks.length === 0 && filteredArchivedTasks.length === 0) {
         return (
             <View style={styles.container}>
                 <View style={styles.emptyContainer}>
@@ -179,6 +189,13 @@ export const TasksView = React.memo(function TasksView({ directoryFilter = null 
                         ))}
                     </ItemGroup>
                 ))}
+                {filteredArchivedTasks.length > 0 && (
+                    <ItemGroup title={t('tasks.archivedGroup')}>
+                        {filteredArchivedTasks.map(task => (
+                            <TaskRow key={task.id} task={task} />
+                        ))}
+                    </ItemGroup>
+                )}
             </ItemList>
         </View>
     );

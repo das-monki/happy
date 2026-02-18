@@ -102,6 +102,7 @@ export const ru: TranslationStructure = {
     archive: "Архивировать",
     archiveConfirmTitle: "Архивировать задачу",
     archiveConfirmMessage: "Задача будет перемещена в архив.",
+    archivedGroup: "Архив",
   },
 
   common: {
@@ -256,6 +257,9 @@ export const ru: TranslationStructure = {
     showFlavorIcons: "Показывать иконки провайдеров ИИ",
     showFlavorIconsDescription:
       "Отображать иконки провайдеров ИИ на аватарах сессий",
+    showArchivedTasks: "Показывать архивные задачи",
+    showArchivedTasksDescription:
+      "Отображать архивные задачи в списке задач",
     compactSessionView: "Компактный вид сессий",
     compactSessionViewDescription:
       "Отображать активные сессии в более компактном виде",

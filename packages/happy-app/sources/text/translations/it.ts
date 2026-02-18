@@ -89,6 +89,7 @@ export const it: TranslationStructure = {
     archive: "Archivia",
     archiveConfirmTitle: "Archivia attività",
     archiveConfirmMessage: "Questa attività verrà spostata nell'archivio.",
+    archivedGroup: "Archiviate",
   },
 
   common: {
@@ -323,6 +324,9 @@ export const it: TranslationStructure = {
     showFlavorIcons: "Mostra icone provider IA",
     showFlavorIconsDescription:
       "Mostra le icone del provider IA sugli avatar di sessione",
+    showArchivedTasks: "Mostra attività archiviate",
+    showArchivedTasksDescription:
+      "Visualizza le attività archiviate nella vista attività",
     compactSessionView: "Vista sessioni compatta",
     compactSessionViewDescription:
       "Mostra le sessioni attive in un layout più compatto",
