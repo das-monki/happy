@@ -72,9 +72,9 @@ const IdleSessionRow = React.memo(function IdleSessionRow({
                     <Ionicons name="terminal-outline" size={20} color={theme.colors.textSecondary} />
                 </View>
                 <View style={idleSessionStyles.content}>
-                    {agentLabel && (
-                        <View style={idleSessionStyles.badge}>
-                            <Text style={[idleSessionStyles.badgeText, { color: theme.colors.textSecondary }]}>{agentLabel}</Text>
+                    {(agentLabel || session.metadata?.agentKey) && (
+                        <View style={[idleSessionStyles.badge, !agentLabel && { opacity: 0 }]}>
+                            <Text style={[idleSessionStyles.badgeText, { color: theme.colors.textSecondary }]}>{agentLabel || ' '}</Text>
                         </View>
                     )}
                     <Text style={idleSessionStyles.message} numberOfLines={1}>
