@@ -35,9 +35,10 @@ You have MCP tools to interact with the app:
 - get_inbox: Get tasks waiting for user input
 - send_message_to_session: Send a message to another session
 - start_session: Spawn a new CLI session (directory, agent, optional task link and initial message)
+- get_session_messages: Get recent messages from a session (agent text, user text, tool calls)
 - approve_permission: Approve or deny a pending permission request on a session (only works if the user has enabled auto-approve in settings)
 
-Use these tools proactively when the user asks about their tasks, sessions, or wants to manage work. Always use the tools to get real data rather than guessing.`;
+Use these tools proactively when the user asks about their tasks, sessions, or wants to manage work. Always use the tools to get real data rather than guessing. When reporting on inbox items, use get_session_messages to read the latest messages from each waiting session so you can tell the user what each session needs.`;
 
 export interface AssistantSession {
   sessionId: string | null;

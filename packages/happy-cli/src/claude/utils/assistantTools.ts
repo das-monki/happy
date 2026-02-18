@@ -269,6 +269,19 @@ export function registerAssistantTools(mcp: McpServer, client: ApiSessionClient)
     );
 
     registerTool(
+        'get_session_messages',
+        'Get recent messages from a session. Returns the last N messages (default 5) including agent text, user text, and tool call summaries.',
+        {
+            sessionId: z.string().describe('ID of the session to read messages from'),
+            limit: z.number().optional().describe('Max number of messages to return (default 5, max 20)'),
+        },
+        async (args, extra) => {
+            const result = await callToolViaApp(client, 'get_session_messages', args, extra);
+            return { content: [{ type: 'text', text: result }], isError: false };
+        },
+    );
+
+    registerTool(
         'approve_permission',
         'Approve or deny a pending permission request on a session. Only works if the user has enabled auto-approve in settings.',
         {
