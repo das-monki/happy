@@ -115,6 +115,7 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         flavor: 'claude',
         sandbox: sandboxConfig?.enabled ? sandboxConfig : null,
         dangerouslySkipPermissions,
+        agentKey: process.env.HAPPY_AGENT_KEY || undefined,
     };
     const response = await api.getOrCreateSession({ tag: sessionTag, metadata, state, taskId: process.env.HAPPY_TASK_ID });
 

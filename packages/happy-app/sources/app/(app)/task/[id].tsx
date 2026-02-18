@@ -418,32 +418,31 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             return;
         }
 
-        // Build prompt from agent template or just title+description
-        let promptTemplate = '';
+        // Get raw agent prompt template (passed as system prompt, not mixed into user message)
+        let agentSystemPrompt: string | null = null;
         if (agentKey) {
             const agentId = agentKey.replace('agent:', '');
             const agent = agents.find(a => a.id === agentId);
-            promptTemplate = agent?.promptTemplate || '';
+            agentSystemPrompt = agent?.promptTemplate || null;
         }
 
-        const taskPrompt = promptTemplate
-            ? promptTemplate
-                .replace('{{title}}', task.title || '')
-                .replace('{{description}}', task.description || '')
-            : `${task.title || ''}${task.description ? '\n\n' + task.description : ''}`;
+        // Task content is always sent as the first user message
+        const taskMessage = `${task.title || ''}${task.description ? '\n\n' + task.description : ''}`;
 
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
             directory: selectedDirectory,
             agent: 'claude',
             taskId: id!,
+            agentKey,
+            agentSystemPrompt,
         });
 
         if ('sessionId' in result && result.sessionId) {
             await sync.refreshSessions();
 
-            if (taskPrompt.trim()) {
-                await sync.sendMessage(result.sessionId, taskPrompt);
+            if (taskMessage.trim()) {
+                await sync.sendMessage(result.sessionId, taskMessage);
             }
 
             router.push(`/session/${result.sessionId}`);
@@ -611,7 +610,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                     <LinkedSessionRow
                         key={session.id}
                         session={session}
-                        agentLabel={task.agentKey ? (agentNameMap.get(task.agentKey) ?? null) : null}
+                        agentLabel={session.metadata?.agentKey ? (agentNameMap.get(session.metadata.agentKey) ?? null) : null}
                     />
                 ))}
                 {!isTerminal && (

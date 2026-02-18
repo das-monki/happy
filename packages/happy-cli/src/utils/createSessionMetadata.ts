@@ -90,6 +90,7 @@ export function createSessionMetadata(opts: CreateSessionMetadataOptions): Sessi
         flavor: opts.flavor,
         sandbox: opts.sandbox?.enabled ? opts.sandbox : null,
         dangerouslySkipPermissions: opts.dangerouslySkipPermissions ?? null,
+        agentKey: process.env.HAPPY_AGENT_KEY || undefined,
     };
 
     return { state, metadata };

@@ -270,6 +270,7 @@ export type Metadata = {
   flavor?: string
   sandbox?: SandboxConfig | null
   dangerouslySkipPermissions?: boolean | null
+  agentKey?: string
 };
 
 export type AgentState = {

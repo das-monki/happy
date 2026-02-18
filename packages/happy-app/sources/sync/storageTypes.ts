@@ -42,6 +42,7 @@ export const MetadataSchema = z.object({
     flavor: z.string().nullish(), // Session flavor/variant identifier
     sandbox: z.any().nullish(), // Sandbox config metadata from CLI (or null when disabled)
     dangerouslySkipPermissions: z.boolean().nullish(), // Claude --dangerously-skip-permissions mode (or null when unknown)
+    agentKey: z.string().optional(), // Agent key identifier (e.g. "agent:abc123") for per-session agent tracking
 });
 
 export type Metadata = z.infer<typeof MetadataSchema>;

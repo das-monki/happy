@@ -123,6 +123,8 @@ export interface SpawnSessionOptions {
     agent?: 'claude' | 'codex' | 'gemini';
     token?: string;
     taskId?: string;
+    agentKey?: string | null;
+    agentSystemPrompt?: string | null;
     environmentVariables?: {
         // Anthropic Claude API configuration
         ANTHROPIC_BASE_URL?: string;        // Custom API endpoint (overrides default)

@@ -331,6 +331,14 @@ export async function startDaemon(): Promise<void> {
           extraEnv.HAPPY_TASK_ID = options.taskId;
         }
 
+        // Pass agent key and system prompt as environment variables
+        if (options.agentKey) {
+          extraEnv.HAPPY_AGENT_KEY = options.agentKey;
+        }
+        if (options.agentSystemPrompt) {
+          extraEnv.HAPPY_AGENT_SYSTEM_PROMPT = options.agentSystemPrompt;
+        }
+
         logger.debug(`[DAEMON RUN] Final environment variable keys (before expansion) (${Object.keys(extraEnv).length}): ${Object.keys(extraEnv).join(', ')}`);
 
         // Expand ${VAR} references from daemon's process.env

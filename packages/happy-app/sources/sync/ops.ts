@@ -152,6 +152,10 @@ export interface SpawnSessionOptions {
     // - API_TIMEOUT_MS, CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
     // - Custom variables (DEEPSEEK_*, Z_AI_*, etc.)
     environmentVariables?: Record<string, string>;
+    // Agent key identifier (e.g. "agent:abc123") stored per-session in metadata
+    agentKey?: string | null;
+    // Agent system prompt injected at CLI level via env var (not mixed into user messages)
+    agentSystemPrompt?: string | null;
 }
 
 // Exported session operation functions
@@ -161,7 +165,7 @@ export interface SpawnSessionOptions {
  */
 export async function machineSpawnNewSession(options: SpawnSessionOptions): Promise<SpawnSessionResult> {
 
-    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, taskId, environmentVariables } = options;
+    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, taskId, environmentVariables, agentKey, agentSystemPrompt } = options;
 
     try {
         const result = await apiSocket.machineRPC<SpawnSessionResult, {
@@ -172,10 +176,12 @@ export async function machineSpawnNewSession(options: SpawnSessionOptions): Prom
             agent?: 'codex' | 'claude' | 'gemini',
             taskId?: string,
             environmentVariables?: Record<string, string>;
+            agentKey?: string | null;
+            agentSystemPrompt?: string | null;
         }>(
             machineId,
             'spawn-happy-session',
-            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, taskId, environmentVariables }
+            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, taskId, environmentVariables, agentKey, agentSystemPrompt }
         );
         return result;
     } catch (error) {
