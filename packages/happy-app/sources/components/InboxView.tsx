@@ -17,6 +17,7 @@ import { VoiceAssistantStatusBar } from './VoiceAssistantStatusBar';
 import type { DecryptedTask } from '@/sync/taskTypes';
 import type { Session } from '@/sync/storageTypes';
 import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
+import { sync } from '@/sync/sync';
 
 /** Extract project name from the task directory (last path segment). */
 function projectName(task: DecryptedTask): string | null {
@@ -37,7 +38,14 @@ const IdleSessionRow = React.memo(function IdleSessionRow({
 }) {
     const { theme } = useUnistyles();
     const router = useRouter();
-    const { messages } = useSessionMessages(session.id);
+    const { messages, isLoaded } = useSessionMessages(session.id);
+
+    // Pre-fetch messages so the inbox shows session text on initial load
+    React.useEffect(() => {
+        if (!isLoaded) {
+            sync.onSessionVisible(session.id);
+        }
+    }, [session.id, isLoaded]);
 
     const lastLine = React.useMemo(() => {
         // Messages are ordered most-recent-first; find the first agent-text
