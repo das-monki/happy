@@ -203,7 +203,8 @@ const HeaderRight = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
     }
 
     if (activeTab === 'inbox') {
-        return null;
+        // Empty view to maintain header centering
+        return <View style={styles.headerButton} />;
     }
 
     if (activeTab === 'settings') {
