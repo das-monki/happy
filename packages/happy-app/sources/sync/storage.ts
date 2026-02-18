@@ -1260,7 +1260,18 @@ export function useArtifactsCount(): number {
 export function useTasks(): DecryptedTask[] {
     return storage(useShallow((state) => {
         if (!state.isDataReady) return [];
-        return Object.values(state.tasks).sort((a, b) => b.updatedAt - a.updatedAt);
+        return Object.values(state.tasks)
+            .filter(task => !task.archived)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+    }));
+}
+
+export function useArchivedTasks(): DecryptedTask[] {
+    return storage(useShallow((state) => {
+        if (!state.isDataReady) return [];
+        return Object.values(state.tasks)
+            .filter(task => task.archived === true)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
     }));
 }
 
@@ -1318,6 +1329,7 @@ export function useWaitingTasks(): DecryptedTask[] {
     return storage(useShallow((state) => {
         if (!state.isDataReady) return [];
         return Object.values(state.tasks).filter(task => {
+            if (task.archived) return false;
             if (task.status === 'completed' || task.status === 'failed') return false;
             const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === task.id);
             if (linkedSessions.length === 0) return false;

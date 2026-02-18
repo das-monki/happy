@@ -99,6 +99,9 @@ export const pl: TranslationStructure = {
     failTitle: "Oznacz jako nieudane",
     failConfirm: "Oznacz jako nieudane",
     filterAll: "Wszystkie",
+    archive: "Archiwizuj",
+    archiveConfirmTitle: "Archiwizuj zadanie",
+    archiveConfirmMessage: "Zadanie zostanie przeniesione do archiwum.",
   },
 
   common: {

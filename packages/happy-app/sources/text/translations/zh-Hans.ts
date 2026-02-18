@@ -88,6 +88,9 @@ export const zhHans: TranslationStructure = {
     failTitle: "标记为失败",
     failConfirm: "标记失败",
     filterAll: "全部",
+    archive: "归档",
+    archiveConfirmTitle: "归档任务",
+    archiveConfirmMessage: "此任务将被移至归档。",
   },
 
   common: {

@@ -23,6 +23,7 @@ export interface TaskHeader {
     machineId?: string | null; // Preferred machine to run on
     directory?: string | null; // Working directory on the machine
     status?: 'completed' | 'failed'; // Explicitly set by user
+    archived?: boolean; // Hidden from main views but not deleted
 }
 
 /**
@@ -49,6 +50,7 @@ export interface DecryptedTask {
     machineId?: string | null;
     directory?: string | null;
     status?: 'completed' | 'failed';
+    archived?: boolean;
     notes?: string | null; // Only loaded when viewing full task
     result?: string | null; // Only loaded when viewing full task
     headerVersion: number;

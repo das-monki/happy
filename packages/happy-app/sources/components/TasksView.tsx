@@ -1,12 +1,17 @@
 import * as React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTasks, useTaskState } from '@/sync/storage';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
+import { useHappyAction } from '@/hooks/useHappyAction';
+import { Modal } from '@/modal';
+import { sync } from '@/sync/sync';
 
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
@@ -67,6 +72,61 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
     );
 });
 
+/**
+ * Wraps TaskRow in a Swipeable for completed/failed tasks (native only).
+ * Swiping left reveals an amber "Archive" action.
+ */
+const SwipeableTaskRow = React.memo(function SwipeableTaskRow({ task }: { task: DecryptedTask }) {
+    const state = useTaskState(task.id);
+    const swipeableRef = React.useRef<Swipeable | null>(null);
+    const swipeEnabled = Platform.OS !== 'web' && (state === 'completed' || state === 'failed');
+
+    const [archiving, performArchive] = useHappyAction(async () => {
+        await sync.updateTaskHeader(task.id, { archived: true });
+    });
+
+    const handleArchive = React.useCallback(() => {
+        swipeableRef.current?.close();
+        Modal.alert(
+            t('tasks.archiveConfirmTitle'),
+            t('tasks.archiveConfirmMessage'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('tasks.archive'),
+                    onPress: performArchive,
+                },
+            ],
+        );
+    }, [performArchive]);
+
+    if (!swipeEnabled) {
+        return <TaskRow task={task} />;
+    }
+
+    const renderRightActions = () => (
+        <Pressable
+            style={styles.swipeAction}
+            onPress={handleArchive}
+            disabled={archiving}
+        >
+            <Ionicons name="archive-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.swipeActionText}>{t('tasks.archive')}</Text>
+        </Pressable>
+    );
+
+    return (
+        <Swipeable
+            ref={swipeableRef}
+            renderRightActions={renderRightActions}
+            overshootRight={false}
+            enabled={!archiving}
+        >
+            <TaskRow task={task} />
+        </Swipeable>
+    );
+});
+
 interface TasksViewProps {
     directoryFilter?: string | null;
 }
@@ -115,7 +175,7 @@ export const TasksView = React.memo(function TasksView({ directoryFilter = null 
                 {groups.map((group) => (
                     <ItemGroup key={group.displayName} title={group.displayName}>
                         {group.tasks.map(task => (
-                            <TaskRow key={task.id} task={task} />
+                            <SwipeableTaskRow key={task.id} task={task} />
                         ))}
                     </ItemGroup>
                 ))}
@@ -165,5 +225,19 @@ const styles = StyleSheet.create((theme) => ({
     badgeLabel: {
         ...Typography.default('regular'),
         fontSize: 15,
+    },
+    swipeAction: {
+        width: 112,
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FF9500',
+    },
+    swipeActionText: {
+        marginTop: 4,
+        fontSize: 12,
+        color: '#FFFFFF',
+        textAlign: 'center',
+        ...Typography.default('semiBold'),
     },
 }));

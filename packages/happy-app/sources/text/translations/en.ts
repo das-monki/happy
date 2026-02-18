@@ -103,6 +103,9 @@ export const en: TranslationStructure = {
     failTitle: "Mark as Failed",
     failConfirm: "Mark Failed",
     filterAll: "All",
+    archive: "Archive",
+    archiveConfirmTitle: "Archive Task",
+    archiveConfirmMessage: "This task will be moved to the archive.",
   },
 
   common: {

@@ -86,6 +86,9 @@ export const pt: TranslationStructure = {
     failTitle: "Marcar como falha",
     failConfirm: "Marcar falha",
     filterAll: "Todos",
+    archive: "Arquivar",
+    archiveConfirmTitle: "Arquivar tarefa",
+    archiveConfirmMessage: "Esta tarefa será movida para o arquivo.",
   },
 
   common: {

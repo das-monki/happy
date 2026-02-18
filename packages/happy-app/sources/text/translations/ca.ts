@@ -86,6 +86,9 @@ export const ca: TranslationStructure = {
     failTitle: "Marcar com a fallida",
     failConfirm: "Marcar fallida",
     filterAll: "Tots",
+    archive: "Arxivar",
+    archiveConfirmTitle: "Arxivar tasca",
+    archiveConfirmMessage: "Aquesta tasca es mourà a l'arxiu.",
   },
 
   common: {

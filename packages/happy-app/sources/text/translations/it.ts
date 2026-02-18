@@ -86,6 +86,9 @@ export const it: TranslationStructure = {
     failTitle: "Segna come fallita",
     failConfirm: "Segna fallita",
     filterAll: "Tutti",
+    archive: "Archivia",
+    archiveConfirmTitle: "Archivia attività",
+    archiveConfirmMessage: "Questa attività verrà spostata nell'archivio.",
   },
 
   common: {

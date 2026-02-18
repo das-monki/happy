@@ -89,6 +89,9 @@ export const ja: TranslationStructure = {
     failTitle: "失敗としてマーク",
     failConfirm: "失敗にする",
     filterAll: "すべて",
+    archive: "アーカイブ",
+    archiveConfirmTitle: "タスクをアーカイブ",
+    archiveConfirmMessage: "このタスクはアーカイブに移動されます。",
   },
 
   common: {

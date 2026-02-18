@@ -1133,7 +1133,7 @@ class Sync {
      * Update task header fields (title, description, agentKey, status).
      * Uses optimistic concurrency control via headerVersion.
      */
-    public async updateTaskHeader(taskId: string, updates: { title?: string | null; description?: string | null; agentKey?: string | null; machineId?: string | null; directory?: string | null; status?: 'completed' | 'failed' | null }): Promise<void> {
+    public async updateTaskHeader(taskId: string, updates: { title?: string | null; description?: string | null; agentKey?: string | null; machineId?: string | null; directory?: string | null; status?: 'completed' | 'failed' | null; archived?: boolean }): Promise<void> {
         if (!this.credentials) {
             throw new Error('Not authenticated');
         }
@@ -1158,6 +1158,9 @@ class Sync {
             ...('status' in updates
                 ? (updates.status ? { status: updates.status } : {})
                 : (task.status ? { status: task.status } : {})),
+            ...(updates.archived !== undefined
+                ? { archived: updates.archived }
+                : (task.archived ? { archived: task.archived } : {})),
         };
 
         const encryptedHeader = await taskEncryption.encryptHeader(newHeader);
@@ -1179,6 +1182,7 @@ class Sync {
             machineId: newHeader.machineId,
             directory: newHeader.directory,
             status: newHeader.status,
+            archived: newHeader.archived,
             headerVersion: result.headerVersion ?? task.headerVersion + 1,
         });
     }
@@ -1219,6 +1223,7 @@ class Sync {
                     machineId: header?.machineId,
                     directory: header?.directory,
                     status: header?.status,
+                    archived: header?.archived,
                     headerVersion: task.headerVersion,
                     seq: task.seq,
                     createdAt: task.createdAt,
@@ -2390,6 +2395,7 @@ class Sync {
                     updatedTask.machineId = header?.machineId;
                     updatedTask.directory = header?.directory;
                     updatedTask.status = header?.status;
+                    updatedTask.archived = header?.archived;
                     updatedTask.headerVersion = taskUpdate.header.version;
                 }
 

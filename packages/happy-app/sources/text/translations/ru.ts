@@ -99,6 +99,9 @@ export const ru: TranslationStructure = {
     failTitle: "Отметить как неудачную",
     failConfirm: "Отметить неудачной",
     filterAll: "Все",
+    archive: "Архивировать",
+    archiveConfirmTitle: "Архивировать задачу",
+    archiveConfirmMessage: "Задача будет перемещена в архив.",
   },
 
   common: {

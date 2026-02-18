@@ -88,6 +88,9 @@ export const zhHant: TranslationStructure = {
     failTitle: "標記為失敗",
     failConfirm: "標記失敗",
     filterAll: "全部",
+    archive: "封存",
+    archiveConfirmTitle: "封存任務",
+    archiveConfirmMessage: "此任務將被移至封存。",
   },
 
   common: {
