@@ -13,7 +13,12 @@ import {
   useAssistantSessionData,
 } from "@/sync/storage";
 import { isMachineOnline } from "@/utils/machineUtils";
-import { machineSpawnNewSession, sessionKill, sessionDelete } from "@/sync/ops";
+import {
+  machineSpawnNewSession,
+  sessionKill,
+  sessionDelete,
+  sessionAbort,
+} from "@/sync/ops";
 import { sync } from "@/sync/sync";
 import { storage } from "@/sync/storage";
 import { useHappyAction } from "./useHappyAction";
@@ -44,6 +49,8 @@ export interface AssistantSession {
   spawn: () => void;
   spawning: boolean;
   send: (text: string) => void;
+  abort: () => void;
+  aborting: boolean;
   clear: () => void;
   clearing: boolean;
 }
@@ -111,6 +118,14 @@ export function useAssistantSession(): AssistantSession {
     [sessionId],
   );
 
+  // Abort: interrupt the current generation
+  const [aborting, doAbort] = useHappyAction(
+    React.useCallback(async () => {
+      if (!sessionId) return;
+      await sessionAbort(sessionId);
+    }, [sessionId]),
+  );
+
   // Clear: kill + delete + respawn
   const [clearing, doClear] = useHappyAction(
     React.useCallback(async () => {
@@ -154,6 +169,8 @@ export function useAssistantSession(): AssistantSession {
     spawn: doSpawn,
     spawning,
     send,
+    abort: doAbort,
+    aborting,
     clear: doClear,
     clearing,
   };

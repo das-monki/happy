@@ -1160,6 +1160,9 @@ export const ru: TranslationStructure = {
     emptyTitle: "Happy Assistant",
     emptyDescription: "Ваш ИИ-ассистент для управления задачами и сессиями",
     runningTools: "Выполнение инструментов...",
+    thinking: "Думает",
+    connected: "Подключен",
+    disconnected: "Отключен",
   },
 
   profiles: {

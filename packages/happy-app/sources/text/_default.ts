@@ -1124,6 +1124,9 @@ export const en = {
     emptyTitle: "Happy Assistant",
     emptyDescription: "Your AI assistant for managing tasks and sessions",
     runningTools: "Running tools...",
+    thinking: "Thinking",
+    connected: "Connected",
+    disconnected: "Disconnected",
   },
 
   profiles: {

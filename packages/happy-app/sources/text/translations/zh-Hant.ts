@@ -1091,6 +1091,9 @@ export const zhHant: TranslationStructure = {
     emptyTitle: "Happy Assistant",
     emptyDescription: "您的AI助理，協助管理任務和工作階段",
     runningTools: "正在執行工具...",
+    thinking: "思考中",
+    connected: "已連線",
+    disconnected: "未連線",
   },
 
   profiles: {

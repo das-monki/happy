@@ -180,6 +180,9 @@ export const it: TranslationStructure = {
     emptyTitle: "Happy Assistant",
     emptyDescription: "Il tuo assistente AI per gestire attività e sessioni",
     runningTools: "Esecuzione strumenti...",
+    thinking: "In elaborazione",
+    connected: "Connesso",
+    disconnected: "Disconnesso",
   },
 
   profiles: {

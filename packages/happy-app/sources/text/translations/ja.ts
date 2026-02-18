@@ -182,6 +182,9 @@ export const ja: TranslationStructure = {
     emptyTitle: "Happy Assistant",
     emptyDescription: "タスクとセッションを管理するAIアシスタント",
     runningTools: "ツールを実行中...",
+    thinking: "思考中",
+    connected: "接続済み",
+    disconnected: "未接続",
   },
 
   profiles: {
