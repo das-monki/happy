@@ -14,12 +14,14 @@ import { ApiSessionClient } from "@/api/apiSession";
 import { ApiClient } from "@/api/api";
 import { randomUUID } from "node:crypto";
 import { encodeBase64, encrypt, getRandomBytes, libsodiumEncryptForPublicKey } from "@/api/encryption";
+import { registerAssistantTools } from "./assistantTools";
 
 interface HappyServerOptions {
     client: ApiSessionClient;
     api: ApiClient;
     taskId?: string;
     sessionId?: string;
+    enableAssistantTools?: boolean;
 }
 
 export async function startHappyServer(clientOrOpts: ApiSessionClient | HappyServerOptions) {
@@ -240,6 +242,12 @@ export async function startHappyServer(clientOrOpts: ApiSessionClient | HappySer
         });
 
         toolNames.push('create_artifact', 'update_artifact', 'list_task_artifacts', 'read_artifact');
+    }
+
+    // Register assistant tools (task/session management proxied through the app)
+    if (opts.enableAssistantTools) {
+        const assistantToolNames = registerAssistantTools(mcp, client);
+        toolNames.push(...assistantToolNames);
     }
 
     const transport = new StreamableHTTPServerTransport({

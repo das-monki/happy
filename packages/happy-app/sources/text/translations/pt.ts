@@ -336,6 +336,10 @@ export const pt: TranslationStructure = {
     speechToTextRecording: "Gravando\u2026",
     speechToTextTranscribing: "Transcrevendo\u2026",
     speechToTextError: "Falha na transcrição",
+    assistant: "Assistente",
+    assistantAutoApprove: "Aprovação automática de permissões",
+    assistantAutoApproveDescription:
+      "Quando ativado, o assistente pode aprovar ou negar automaticamente solicitações de permissões nas suas sessões. Quando desativado, você deve aprovar as permissões manualmente.",
   },
 
   errors: {
@@ -1122,6 +1126,7 @@ export const pt: TranslationStructure = {
     connecting: "Iniciando...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "Seu assistente de IA para gerenciar tarefas e sessões",
+    runningTools: "Executando ferramentas...",
   },
 
   profiles: {

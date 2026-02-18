@@ -64,6 +64,17 @@ export const AgentStateSchema = z.object({
         mode: z.string().nullish(),
         allowedTools: z.array(z.string()).nullish(),
         decision: z.enum(['approved', 'approved_for_session', 'denied', 'abort']).nullish()
+    })).nullish(),
+    toolRequests: z.record(z.string(), z.object({
+        tool: z.string(),
+        arguments: z.any(),
+        createdAt: z.number().nullish()
+    })).nullish(),
+    completedToolRequests: z.record(z.string(), z.object({
+        tool: z.string(),
+        result: z.any().nullish(),
+        error: z.string().nullish(),
+        completedAt: z.number().nullish()
     })).nullish()
 });
 

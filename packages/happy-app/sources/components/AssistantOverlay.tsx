@@ -25,6 +25,8 @@ import { MessageView } from "./MessageView";
 import { STTButton } from "./STTButton";
 import { Modal } from "@/modal";
 import { t } from "@/text";
+import { storage } from "@/sync/storage";
+import { useShallow } from "zustand/react/shallow";
 import type { AssistantSession } from "@/hooks/useAssistantSession";
 import type { Message } from "@/sync/typesMessage";
 
@@ -42,6 +44,16 @@ export const AssistantOverlay = React.memo(
     const safeArea = useSafeAreaInsets();
     const [inputText, setInputText] = React.useState("");
     const inputRef = React.useRef<TextInput>(null);
+
+    // Count pending tool requests on the assistant session
+    const pendingToolCount = storage(
+      useShallow((state) => {
+        if (!assistant.sessionId) return 0;
+        const requests =
+          state.sessions[assistant.sessionId]?.agentState?.toolRequests;
+        return requests ? Object.keys(requests).length : 0;
+      }),
+    );
 
     const handleSend = React.useCallback(() => {
       const trimmed = inputText.trim();
@@ -182,6 +194,29 @@ export const AssistantOverlay = React.memo(
               />
             )}
           </View>
+
+          {/* Tool-pending indicator */}
+          {assistant.sessionId && pendingToolCount > 0 && (
+            <View
+              style={[
+                styles.toolPendingBar,
+                { backgroundColor: theme.colors.surface },
+              ]}
+            >
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.toolPendingText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {t("assistant.runningTools")}
+              </Text>
+            </View>
+          )}
 
           {/* Input bar */}
           {assistant.sessionId && (
@@ -336,6 +371,17 @@ const styles = StyleSheet.create((theme) => ({
   listContent: {
     paddingHorizontal: 0,
     paddingVertical: 8,
+  },
+  toolPendingBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 6,
+  },
+  toolPendingText: {
+    fontSize: 13,
+    ...Typography.default(),
   },
   inputBar: {
     paddingTop: 8,

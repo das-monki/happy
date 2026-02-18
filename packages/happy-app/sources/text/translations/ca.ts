@@ -337,6 +337,10 @@ export const ca: TranslationStructure = {
     speechToTextRecording: "Enregistrant\u2026",
     speechToTextTranscribing: "Transcrivint\u2026",
     speechToTextError: "La transcripció ha fallat",
+    assistant: "Assistent",
+    assistantAutoApprove: "Aprovació automàtica de permisos",
+    assistantAutoApproveDescription:
+      "Quan està activat, l'assistent pot aprovar o denegar automàticament les sol·licituds de permisos a les teves sessions. Quan està desactivat, has d'aprovar els permisos manualment.",
   },
 
   errors: {
@@ -1127,6 +1131,7 @@ export const ca: TranslationStructure = {
     connecting: "Iniciant...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "El teu assistent d'IA per gestionar tasques i sessions",
+    runningTools: "Executant eines...",
   },
 
   profiles: {

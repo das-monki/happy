@@ -323,6 +323,10 @@ export const zhHans: TranslationStructure = {
     speechToTextRecording: "录音中\u2026",
     speechToTextTranscribing: "转录中\u2026",
     speechToTextError: "转录失败",
+    assistant: "助手",
+    assistantAutoApprove: "自动审批权限",
+    assistantAutoApproveDescription:
+      "启用后，助手可以自动批准或拒绝您会话中的权限请求。禁用后，您必须手动审批权限。",
   },
 
   errors: {
@@ -1075,6 +1079,7 @@ export const zhHans: TranslationStructure = {
     connecting: "启动中...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "您的AI助手，帮助管理任务和会话",
+    runningTools: "正在运行工具...",
   },
 
   profiles: {

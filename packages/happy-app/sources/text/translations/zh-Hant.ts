@@ -323,6 +323,10 @@ export const zhHant: TranslationStructure = {
     speechToTextRecording: "錄音中\u2026",
     speechToTextTranscribing: "轉錄中\u2026",
     speechToTextError: "轉錄失敗",
+    assistant: "助理",
+    assistantAutoApprove: "自動核准權限",
+    assistantAutoApproveDescription:
+      "啟用後，助理可以自動核准或拒絕您工作階段中的權限請求。停用後，您必須手動核准權限。",
   },
 
   errors: {
@@ -1086,6 +1090,7 @@ export const zhHant: TranslationStructure = {
     connecting: "啟動中...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "您的AI助理，協助管理任務和工作階段",
+    runningTools: "正在執行工具...",
   },
 
   profiles: {

@@ -318,6 +318,10 @@ export const ru: TranslationStructure = {
     speechToTextRecording: "Запись\u2026",
     speechToTextTranscribing: "Транскрибирование\u2026",
     speechToTextError: "Ошибка транскрибирования",
+    assistant: "Ассистент",
+    assistantAutoApprove: "Автоодобрение разрешений",
+    assistantAutoApproveDescription:
+      "Когда включено, ассистент может автоматически одобрять или отклонять запросы на разрешения в ваших сессиях. Когда выключено, вы должны одобрять разрешения вручную.",
   },
 
   errors: {
@@ -1155,6 +1159,7 @@ export const ru: TranslationStructure = {
     connecting: "Запуск...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "Ваш ИИ-ассистент для управления задачами и сессиями",
+    runningTools: "Выполнение инструментов...",
   },
 
   profiles: {

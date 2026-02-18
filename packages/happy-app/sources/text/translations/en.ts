@@ -345,6 +345,10 @@ export const en: TranslationStructure = {
     speechToTextRecording: "Recording\u2026",
     speechToTextTranscribing: "Transcribing\u2026",
     speechToTextError: "Transcription failed",
+    assistant: "Assistant",
+    assistantAutoApprove: "Auto-approve Permissions",
+    assistantAutoApproveDescription:
+      "When enabled, the assistant can automatically approve or deny permission requests on your sessions. When disabled, you must approve permissions manually.",
   },
 
   errors: {
@@ -1133,6 +1137,7 @@ export const en: TranslationStructure = {
     connecting: "Starting...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "Your AI assistant for managing tasks and sessions",
+    runningTools: "Running tools...",
   },
 
   profiles: {

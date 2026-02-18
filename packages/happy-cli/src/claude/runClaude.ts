@@ -199,7 +199,12 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
     const session = api.sessionSyncClient(response);
 
     // Start Happy MCP server
-    const happyServer = await startHappyServer({ client: session, api, sessionId: response.id });
+    const happyServer = await startHappyServer({
+        client: session,
+        api,
+        sessionId: response.id,
+        enableAssistantTools: process.env.HAPPY_ASSISTANT_TOOLS === 'true',
+    });
     logger.debug(`[START] Happy MCP server started at ${happyServer.url}`);
 
     // Variable to track current session instance (updated via onSessionReady callback)

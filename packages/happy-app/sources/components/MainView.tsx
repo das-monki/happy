@@ -23,6 +23,7 @@ import { DirectoryFilterDropdown, DirectoryOption } from './DirectoryFilterDropd
 import { AssistantButton } from './AssistantButton';
 import { AssistantOverlay } from './AssistantOverlay';
 import { useAssistantSession } from '@/hooks/useAssistantSession';
+import { useAssistantToolHandler } from '@/hooks/useAssistantToolHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MainViewProps {
@@ -286,6 +287,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     // Assistant overlay
     const [assistantVisible, setAssistantVisible] = React.useState(false);
     const assistant = useAssistantSession();
+    useAssistantToolHandler(assistant.sessionId);
     const safeArea = useSafeAreaInsets();
 
     // Compute unique directories from all tasks

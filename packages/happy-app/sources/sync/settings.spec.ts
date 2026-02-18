@@ -134,6 +134,7 @@ describe("settings", () => {
         dismissedCLIWarnings: { perMachine: {}, global: {} },
         assistantAgent: "claude",
         assistantSessionId: null,
+        assistantAutoApprove: false,
       };
       const delta: Partial<Settings> = {
         viewInline: true,
@@ -212,6 +213,7 @@ describe("settings", () => {
         dismissedCLIWarnings: { perMachine: {}, global: {} },
         assistantAgent: "claude",
         assistantSessionId: null,
+        assistantAutoApprove: false,
       };
       const delta: Partial<Settings> = {};
       expect(applySettings(currentSettings, delta)).toEqual(currentSettings);
@@ -253,6 +255,7 @@ describe("settings", () => {
         dismissedCLIWarnings: { perMachine: {}, global: {} },
         assistantAgent: "claude",
         assistantSessionId: null,
+        assistantAutoApprove: false,
       };
       const delta: Partial<Settings> = {
         viewInline: false,
@@ -299,6 +302,7 @@ describe("settings", () => {
         dismissedCLIWarnings: { perMachine: {}, global: {} },
         assistantAgent: "claude",
         assistantSessionId: null,
+        assistantAutoApprove: false,
       };
       expect(applySettings(currentSettings, {})).toEqual(currentSettings);
     });
@@ -354,6 +358,7 @@ describe("settings", () => {
         dismissedCLIWarnings: { perMachine: {}, global: {} },
         assistantAgent: "claude",
         assistantSessionId: null,
+        assistantAutoApprove: false,
       };
       const delta: any = {
         viewInline: false,

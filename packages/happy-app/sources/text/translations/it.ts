@@ -179,6 +179,7 @@ export const it: TranslationStructure = {
     connecting: "Avvio in corso...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "Il tuo assistente AI per gestire attività e sessioni",
+    runningTools: "Esecuzione strumenti...",
   },
 
   profiles: {
@@ -401,6 +402,10 @@ export const it: TranslationStructure = {
     speechToTextRecording: "Registrazione\u2026",
     speechToTextTranscribing: "Trascrizione\u2026",
     speechToTextError: "Trascrizione non riuscita",
+    assistant: "Assistente",
+    assistantAutoApprove: "Approvazione automatica permessi",
+    assistantAutoApproveDescription:
+      "Quando attivo, l'assistente può approvare o negare automaticamente le richieste di permessi nelle tue sessioni. Quando disattivo, devi approvare i permessi manualmente.",
   },
 
   errors: {

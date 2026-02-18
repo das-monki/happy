@@ -181,6 +181,7 @@ export const ja: TranslationStructure = {
     connecting: "開始中...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "タスクとセッションを管理するAIアシスタント",
+    runningTools: "ツールを実行中...",
   },
 
   profiles: {
@@ -395,6 +396,10 @@ export const ja: TranslationStructure = {
     speechToTextRecording: "録音中\u2026",
     speechToTextTranscribing: "文字起こし中\u2026",
     speechToTextError: "文字起こしに失敗しました",
+    assistant: "アシスタント",
+    assistantAutoApprove: "権限の自動承認",
+    assistantAutoApproveDescription:
+      "有効にすると、アシスタントがセッションの権限リクエストを自動的に承認または拒否できます。無効の場合、手動で権限を承認する必要があります。",
   },
 
   errors: {

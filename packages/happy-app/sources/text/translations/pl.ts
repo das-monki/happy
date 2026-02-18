@@ -347,6 +347,10 @@ export const pl: TranslationStructure = {
     speechToTextRecording: "Nagrywanie\u2026",
     speechToTextTranscribing: "Transkrybowanie\u2026",
     speechToTextError: "Transkrypcja nie powiodła się",
+    assistant: "Asystent",
+    assistantAutoApprove: "Automatyczne zatwierdzanie uprawnień",
+    assistantAutoApproveDescription:
+      "Po włączeniu asystent może automatycznie zatwierdzać lub odrzucać żądania uprawnień w Twoich sesjach. Po wyłączeniu musisz zatwierdzać uprawnienia ręcznie.",
   },
 
   errors: {
@@ -1157,6 +1161,7 @@ export const pl: TranslationStructure = {
     connecting: "Uruchamianie...",
     emptyTitle: "Happy Assistant",
     emptyDescription: "Twój asystent AI do zarządzania zadaniami i sesjami",
+    runningTools: "Wykonywanie narzędzi...",
   },
 
   profiles: {

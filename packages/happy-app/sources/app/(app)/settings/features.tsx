@@ -31,6 +31,9 @@ export default function FeaturesSettingsScreen() {
   const [speechToTextModel, setSpeechToTextModel] =
     useSettingMutable("speechToTextModel");
   const modelManager = useWhisperModelManager();
+  const [assistantAutoApprove, setAssistantAutoApprove] = useSettingMutable(
+    "assistantAutoApprove",
+  );
 
   return (
     <ItemList style={{ paddingTop: 0 }}>
@@ -190,6 +193,29 @@ export default function FeaturesSettingsScreen() {
           />
         </ItemGroup>
       )}
+      {/* Assistant */}
+      <ItemGroup
+        title={t("settingsFeatures.assistant")}
+        footer={t("settingsFeatures.assistantAutoApproveDescription")}
+      >
+        <Item
+          title={t("settingsFeatures.assistantAutoApprove")}
+          icon={
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={29}
+              color="#34C759"
+            />
+          }
+          rightElement={
+            <Switch
+              value={assistantAutoApprove}
+              onValueChange={setAssistantAutoApprove}
+            />
+          }
+          showChevron={false}
+        />
+      </ItemGroup>
     </ItemList>
   );
 }

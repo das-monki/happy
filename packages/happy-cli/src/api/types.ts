@@ -295,4 +295,19 @@ export type AgentState = {
       allowTools?: string[]
     }
   }
+  toolRequests?: {
+    [id: string]: {
+      tool: string,
+      arguments: any,
+      createdAt: number
+    }
+  }
+  completedToolRequests?: {
+    [id: string]: {
+      tool: string,
+      result: any,
+      error?: string,
+      completedAt: number
+    }
+  }
 }

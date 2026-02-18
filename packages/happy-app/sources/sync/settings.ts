@@ -458,6 +458,11 @@ export const SettingsSchema = z.object({
     .string()
     .nullable()
     .describe("Active assistant session ID"),
+  assistantAutoApprove: z
+    .boolean()
+    .describe(
+      "Allow the assistant to auto-approve permission requests on other sessions",
+    ),
 });
 
 //
@@ -520,6 +525,7 @@ export const settingsDefaults: Settings = {
   // Assistant overlay defaults
   assistantAgent: "claude",
   assistantSessionId: null,
+  assistantAutoApprove: false,
 };
 Object.freeze(settingsDefaults);
 
