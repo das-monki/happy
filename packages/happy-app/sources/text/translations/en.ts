@@ -102,6 +102,7 @@ export const en: TranslationStructure = {
     completeConfirm: "Complete",
     failTitle: "Mark as Failed",
     failConfirm: "Mark Failed",
+    filterAll: "All",
   },
 
   common: {

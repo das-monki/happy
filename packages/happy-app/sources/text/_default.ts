@@ -87,6 +87,7 @@ export const en = {
     completeConfirm: "Complete",
     failTitle: "Mark as Failed",
     failConfirm: "Mark Failed",
+    filterAll: "All",
   },
 
   common: {

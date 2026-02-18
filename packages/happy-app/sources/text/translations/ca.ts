@@ -85,6 +85,7 @@ export const ca: TranslationStructure = {
     completeConfirm: "Completar",
     failTitle: "Marcar com a fallida",
     failConfirm: "Marcar fallida",
+    filterAll: "Tots",
   },
 
   common: {

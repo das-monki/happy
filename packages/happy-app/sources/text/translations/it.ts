@@ -85,6 +85,7 @@ export const it: TranslationStructure = {
     completeConfirm: "Completa",
     failTitle: "Segna come fallita",
     failConfirm: "Segna fallita",
+    filterAll: "Tutti",
   },
 
   common: {

@@ -98,6 +98,7 @@ export const pl: TranslationStructure = {
     completeConfirm: "Zakończ",
     failTitle: "Oznacz jako nieudane",
     failConfirm: "Oznacz jako nieudane",
+    filterAll: "Wszystkie",
   },
 
   common: {

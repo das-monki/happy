@@ -67,14 +67,21 @@ const TaskRow = React.memo(function TaskRow({ task }: { task: DecryptedTask }) {
     );
 });
 
-export const TasksView = React.memo(function TasksView() {
+interface TasksViewProps {
+    directoryFilter?: string | null;
+}
+
+export const TasksView = React.memo(function TasksView({ directoryFilter = null }: TasksViewProps) {
     const { theme } = useUnistyles();
     const tasks = useTasks();
 
     /** Group tasks by directory, sorted alphabetically by display name. */
     const groups = React.useMemo(() => {
+        const filtered = directoryFilter
+            ? tasks.filter(task => task.directory === directoryFilter)
+            : tasks;
         const map = new Map<string, { displayName: string; tasks: DecryptedTask[] }>();
-        for (const task of tasks) {
+        for (const task of filtered) {
             const dir = task.directory || '';
             if (!map.has(dir)) {
                 const name = projectName(task);
@@ -83,7 +90,7 @@ export const TasksView = React.memo(function TasksView() {
             map.get(dir)!.tasks.push(task);
         }
         return [...map.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
-    }, [tasks]);
+    }, [tasks, directoryFilter]);
 
     if (tasks.length === 0) {
         return (

@@ -87,6 +87,7 @@ export const zhHans: TranslationStructure = {
     completeConfirm: "完成",
     failTitle: "标记为失败",
     failConfirm: "标记失败",
+    filterAll: "全部",
   },
 
   common: {

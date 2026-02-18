@@ -88,6 +88,7 @@ export const ja: TranslationStructure = {
     completeConfirm: "完了",
     failTitle: "失敗としてマーク",
     failConfirm: "失敗にする",
+    filterAll: "すべて",
   },
 
   common: {

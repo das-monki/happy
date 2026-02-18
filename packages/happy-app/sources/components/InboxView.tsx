@@ -144,6 +144,7 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({
 });
 
 interface InboxViewProps {
+    directoryFilter?: string | null;
 }
 
 // Header components for tablet mode only (phone mode header is in MainView)
@@ -161,7 +162,7 @@ function HeaderTitleTablet() {
     );
 }
 
-export const InboxView = React.memo(({}: InboxViewProps) => {
+export const InboxView = React.memo(({ directoryFilter = null }: InboxViewProps) => {
     const { theme } = useUnistyles();
     const isTablet = useIsTablet();
     const realtimeStatus = useRealtimeStatus();
@@ -176,7 +177,14 @@ export const InboxView = React.memo(({}: InboxViewProps) => {
         return map;
     }, [agents]);
 
-    const isEmpty = waitingTasks.length === 0;
+    const filteredTasks = React.useMemo(
+        () => directoryFilter
+            ? waitingTasks.filter(task => task.directory === directoryFilter)
+            : waitingTasks,
+        [waitingTasks, directoryFilter],
+    );
+
+    const isEmpty = filteredTasks.length === 0;
 
     if (isEmpty) {
         return (
@@ -231,7 +239,7 @@ export const InboxView = React.memo(({}: InboxViewProps) => {
             }}>
                 <UpdateBanner />
                 <ItemGroup title={t('inbox.waitingTasks')}>
-                    {waitingTasks.map((task) => (
+                    {filteredTasks.map((task) => (
                         <WaitingTaskRow key={task.id} task={task} agentNameMap={agentNameMap} />
                     ))}
                 </ItemGroup>

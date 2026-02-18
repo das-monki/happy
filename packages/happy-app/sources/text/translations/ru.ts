@@ -98,6 +98,7 @@ export const ru: TranslationStructure = {
     completeConfirm: "Завершить",
     failTitle: "Отметить как неудачную",
     failConfirm: "Отметить неудачной",
+    filterAll: "Все",
   },
 
   common: {

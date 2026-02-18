@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useSocketStatus, useRealtimeStatus, useWaitingTasks } from '@/sync/storage';
+import { useSocketStatus, useRealtimeStatus, useWaitingTasks, useTasks } from '@/sync/storage';
 import { useVisibleSessionListViewData } from '@/hooks/useVisibleSessionListViewData';
 import { useIsTablet } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
@@ -19,6 +19,7 @@ import { StatusDot } from './StatusDot';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
+import { DirectoryFilterDropdown, DirectoryOption } from './DirectoryFilterDropdown';
 
 interface MainViewProps {
     variant: 'phone' | 'sidebar';
@@ -94,6 +95,11 @@ const styles = StyleSheet.create((theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 }));
 
 // Tab header configuration
@@ -106,8 +112,18 @@ const TAB_TITLES = {
 // Active tabs
 type ActiveTabType = 'sessions' | 'inbox' | 'tasks';
 
-// Header title component with connection status
-const HeaderTitle = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => {
+// Header title component with connection status and optional directory filter
+const HeaderTitle = React.memo(({
+    activeTab,
+    directories,
+    directoryFilter,
+    onDirectoryFilterChange,
+}: {
+    activeTab: ActiveTabType;
+    directories: DirectoryOption[];
+    directoryFilter: string | null;
+    onDirectoryFilterChange: (directory: string | null) => void;
+}) => {
     const { theme } = useUnistyles();
     const socketStatus = useSocketStatus();
 
@@ -147,11 +163,23 @@ const HeaderTitle = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
         }
     }, [socketStatus, theme]);
 
-    return (
+    const showFilter = activeTab === 'inbox' || activeTab === 'tasks';
+
+    const titleContent = (
         <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>
-                {t(TAB_TITLES[activeTab])}
-            </Text>
+            <View style={styles.titleRow}>
+                <Text style={styles.titleText}>
+                    {t(TAB_TITLES[activeTab])}
+                </Text>
+                {showFilter && (
+                    <Ionicons
+                        name="chevron-down"
+                        size={14}
+                        color={theme.colors.header.tint}
+                        style={{ marginLeft: 4 }}
+                    />
+                )}
+            </View>
             {connectionStatus.text && (
                 <View style={styles.statusContainer}>
                     <StatusDot
@@ -166,6 +194,20 @@ const HeaderTitle = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
                 </View>
             )}
         </View>
+    );
+
+    if (!showFilter) {
+        return titleContent;
+    }
+
+    return (
+        <DirectoryFilterDropdown
+            directories={directories}
+            selected={directoryFilter}
+            onSelect={onDirectoryFilterChange}
+        >
+            {titleContent}
+        </DirectoryFilterDropdown>
     );
 });
 
@@ -202,6 +244,13 @@ const HeaderRight = React.memo(({ activeTab }: { activeTab: ActiveTabType }) => 
     return <View style={styles.headerButton} />;
 });
 
+/** Extract display name from a directory path (last path segment). */
+function directoryDisplayName(directory: string): string {
+    const trimmed = directory.endsWith('/') ? directory.slice(0, -1) : directory;
+    const last = trimmed.split('/').pop();
+    return last && last !== '~' ? last : directory;
+}
+
 export const MainView = React.memo(({ variant }: MainViewProps) => {
     const { theme } = useUnistyles();
     const sessionListViewData = useVisibleSessionListViewData();
@@ -209,10 +258,28 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const router = useRouter();
     const realtimeStatus = useRealtimeStatus();
     const waitingTasks = useWaitingTasks();
+    const allTasks = useTasks();
 
     // Tab state management
     // NOTE: Zen tab removed - the feature never got to a useful state
     const [activeTab, setActiveTab] = React.useState<TabType>('inbox');
+
+    // Directory filter state — persists across tab switches
+    const [directoryFilter, setDirectoryFilter] = React.useState<string | null>(null);
+
+    // Compute unique directories from all tasks
+    const directories = React.useMemo<DirectoryOption[]>(() => {
+        const seen = new Map<string, string>();
+        for (const task of allTasks) {
+            const dir = task.directory;
+            if (dir && !seen.has(dir)) {
+                seen.set(dir, directoryDisplayName(dir));
+            }
+        }
+        return [...seen.entries()]
+            .map(([directory, displayName]) => ({ directory, displayName }))
+            .sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }, [allTasks]);
 
     const handleNewSession = React.useCallback(() => {
         router.push('/new');
@@ -226,14 +293,14 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const renderTabContent = React.useCallback(() => {
         switch (activeTab) {
             case 'inbox':
-                return <InboxView />;
+                return <InboxView directoryFilter={directoryFilter} />;
             case 'tasks':
-                return <TasksView />;
+                return <TasksView directoryFilter={directoryFilter} />;
             case 'sessions':
             default:
                 return <SessionsListWrapper />;
         }
-    }, [activeTab]);
+    }, [activeTab, directoryFilter]);
 
     // Sidebar variant
     if (variant === 'sidebar') {
@@ -281,7 +348,14 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
             <View style={styles.phoneContainer}>
                 <View style={{ backgroundColor: theme.colors.groupped.background }}>
                     <Header
-                        title={<HeaderTitle activeTab={activeTab as ActiveTabType} />}
+                        title={
+                            <HeaderTitle
+                                activeTab={activeTab as ActiveTabType}
+                                directories={directories}
+                                directoryFilter={directoryFilter}
+                                onDirectoryFilterChange={setDirectoryFilter}
+                            />
+                        }
                         headerRight={() => <HeaderRight activeTab={activeTab as ActiveTabType} />}
                         headerLeft={() => <HeaderLogo />}
                         headerShadowVisible={false}
