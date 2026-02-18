@@ -82,6 +82,7 @@ export const en: TranslationStructure = {
     // Task detail & execution
     sessions: "Sessions",
     addSession: "Add Session",
+    additionalInstructions: "Additional instructions (optional)",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

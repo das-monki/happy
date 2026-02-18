@@ -78,6 +78,7 @@ export const ru: TranslationStructure = {
     stateFailed: "Failed",
     sessions: "Sessions",
     addSession: "Добавить сессию",
+    additionalInstructions: "Дополнительные инструкции (необязательно)",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

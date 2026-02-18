@@ -65,6 +65,7 @@ export const it: TranslationStructure = {
     stateFailed: "Failed",
     sessions: "Sessions",
     addSession: "Aggiungi sessione",
+    additionalInstructions: "Istruzioni aggiuntive (facoltativo)",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

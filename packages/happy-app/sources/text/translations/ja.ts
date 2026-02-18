@@ -68,6 +68,7 @@ export const ja: TranslationStructure = {
     stateFailed: "Failed",
     sessions: "Sessions",
     addSession: "セッションを追加",
+    additionalInstructions: "追加の指示（任意）",
     sessionActive: "Active",
     sessionInactive: "Inactive",
     noAgentAssigned: "Please assign an agent before running this task.",

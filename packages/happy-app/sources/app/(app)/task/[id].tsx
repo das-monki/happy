@@ -84,11 +84,12 @@ const AddSessionModal = React.memo(function AddSessionModal({
     onClose,
 }: {
     agents: { id: string; name: string; description: string; promptTemplate: string }[];
-    onCreateSession: (agentKey: string | null) => void;
+    onCreateSession: (agentKey: string | null, userMessage: string) => void;
     onClose: () => void;
 }) {
     const { theme } = useUnistyles();
     const [selectedAgentKey, setSelectedAgentKey] = React.useState<string | null>(null);
+    const [userMessage, setUserMessage] = React.useState('');
 
     return (
         <View style={pickerStyles.container}>
@@ -141,6 +142,21 @@ const AddSessionModal = React.memo(function AddSessionModal({
                     );
                 })}
             </ScrollView>
+            <View style={{ borderTopWidth: 0.5, borderTopColor: theme.colors.divider, paddingHorizontal: 16, paddingVertical: 10 }}>
+                <TextInput
+                    value={userMessage}
+                    onChangeText={setUserMessage}
+                    placeholder={t('tasks.additionalInstructions')}
+                    placeholderTextColor={theme.colors.textSecondary}
+                    multiline
+                    style={{
+                        fontSize: 15,
+                        color: theme.colors.text,
+                        minHeight: 36,
+                        maxHeight: 80,
+                    }}
+                />
+            </View>
             <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
                 <Pressable
                     onPress={onClose}
@@ -153,7 +169,7 @@ const AddSessionModal = React.memo(function AddSessionModal({
                     </Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => { onCreateSession(selectedAgentKey); onClose(); }}
+                    onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim()); onClose(); }}
                     style={({ pressed }) => [
                         { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
                     ]}
@@ -404,7 +420,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
     // Spawn a session with a given agent
-    const doCreateSession = React.useCallback(async (agentKey: string | null) => {
+    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string) => {
         if (!task) return;
 
         if (!selectedMachineId) {
@@ -426,8 +442,16 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             agentSystemPrompt = agent?.promptTemplate || null;
         }
 
-        // Task content is always sent as the first user message
-        const taskMessage = `${task.title || ''}${task.description ? '\n\n' + task.description : ''}`;
+        // Build the first user message from a template with task context
+        const title = task.title || '';
+        const description = task.description || '';
+        let taskMessage = `I have a task I'm working on:\n\n**${title}**`;
+        if (description) {
+            taskMessage += `\n\n${description}`;
+        }
+        if (userMessage) {
+            taskMessage += `\n\n---\n\n${userMessage}`;
+        }
 
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
@@ -457,8 +481,8 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             component: AddSessionModal,
             props: {
                 agents,
-                onCreateSession: (agentKey: string | null) => {
-                    doCreateSession(agentKey).catch(e => {
+                onCreateSession: (agentKey: string | null, userMessage: string) => {
+                    doCreateSession(agentKey, userMessage || undefined).catch(e => {
                         Modal.alert(t('common.error'), e instanceof Error ? e.message : t('tasks.runFailed'));
                     });
                 },
