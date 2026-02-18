@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Platform, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWaitingTasks, useRealtimeStatus, useTaskSessions } from '@/sync/storage';
+import { useWaitingTasks, useRealtimeStatus, useTaskSessions, useSessionMessages } from '@/sync/storage';
 import { t } from '@/text';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { VoiceAssistantStatusBar } from './VoiceAssistantStatusBar';
 import type { DecryptedTask } from '@/sync/taskTypes';
+import type { Session } from '@/sync/storageTypes';
+import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 
 /** Extract project name from the task directory (last path segment). */
 function projectName(task: DecryptedTask): string | null {
@@ -25,34 +27,111 @@ function projectName(task: DecryptedTask): string | null {
     return last && last !== '~' ? last : null;
 }
 
+/** Extracts the last sentence from the most recent agent message in a session. */
+const IdleSessionRow = React.memo(function IdleSessionRow({
+    session,
+    agentLabel,
+}: {
+    session: Session;
+    agentLabel: string | null;
+}) {
+    const { theme } = useUnistyles();
+    const router = useRouter();
+    const { messages } = useSessionMessages(session.id);
+
+    const lastLine = React.useMemo(() => {
+        // Messages are ordered most-recent-first; find the first agent-text
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            if (msg.kind === 'agent-text') {
+                const stripped = msg.text.replace(/<options>[\s\S]*?<\/options>/g, '').trim();
+                const sentences = stripped.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+                return sentences[sentences.length - 1]?.trim() || null;
+            }
+        }
+        return null;
+    }, [messages]);
+
+    return (
+        <Pressable
+            onPress={() => router.push(`/session/${session.id}`)}
+            style={({ pressed }) => [
+                pressed && Platform.OS === 'ios' && { backgroundColor: theme.colors.surfacePressedOverlay },
+            ]}
+        >
+            <View style={idleSessionStyles.row}>
+                <View style={idleSessionStyles.icon}>
+                    <Ionicons name="terminal-outline" size={20} color={theme.colors.textSecondary} />
+                </View>
+                <View style={idleSessionStyles.content}>
+                    {agentLabel && (
+                        <View style={idleSessionStyles.badge}>
+                            <Text style={[idleSessionStyles.badgeText, { color: theme.colors.textSecondary }]}>{agentLabel}</Text>
+                        </View>
+                    )}
+                    <Text style={idleSessionStyles.message} numberOfLines={1}>
+                        {lastLine || t('tasks.stateWaiting')}
+                    </Text>
+                </View>
+                <Ionicons
+                    name="chevron-forward"
+                    size={Platform.select({ ios: 17, default: 24 })}
+                    color={theme.colors.groupped.chevron}
+                    style={{ marginLeft: 4 }}
+                />
+            </View>
+        </Pressable>
+    );
+});
+
 /**
  * Row for a waiting task in the inbox.
- * Tapping navigates directly to the first idle session (most recently updated).
+ * Tapping the task row navigates to the task detail screen.
+ * Idle sessions are always shown below, each navigating to that session.
  */
-const WaitingTaskRow = React.memo(function WaitingTaskRow({ task }: { task: DecryptedTask }) {
+const WaitingTaskRow = React.memo(function WaitingTaskRow({
+    task,
+    agentNameMap,
+}: {
+    task: DecryptedTask;
+    agentNameMap: Map<string, string>;
+}) {
     const { theme } = useUnistyles();
     const router = useRouter();
     const linkedSessions = useTaskSessions(task.id);
     const project = projectName(task);
 
-    const handlePress = React.useCallback(() => {
-        const idleSession = linkedSessions.find(s => !s.thinking);
-        if (idleSession) {
-            router.push(`/session/${idleSession.id}`);
-        } else {
-            router.push(`/task/${task.id}`);
-        }
-    }, [linkedSessions, task.id, router]);
+    const idleSessions = React.useMemo(
+        () => linkedSessions.filter(s => !s.thinking),
+        [linkedSessions],
+    );
+
+    const handleTaskPress = React.useCallback(() => {
+        router.push(`/task/${task.id}`);
+    }, [task.id, router]);
 
     return (
-        <Item
-            title={task.title || t('tasks.untitled')}
-            subtitle={project || task.description || undefined}
-            icon={<Ionicons name="time-outline" size={24} color="#FF9500" />}
-            detail={t('tasks.stateWaiting')}
-            detailStyle={{ color: '#FF9500' }}
-            onPress={handlePress}
-        />
+        <>
+            <Item
+                title={task.title || t('tasks.untitled')}
+                subtitle={project || task.description || undefined}
+                icon={<Ionicons name="time-outline" size={24} color="#FF9500" />}
+                detail={t('tasks.stateWaiting')}
+                detailStyle={{ color: '#FF9500' }}
+                onPress={handleTaskPress}
+                showDivider={idleSessions.length === 0}
+            />
+            {idleSessions.length > 0 && (
+                <View style={{ height: Platform.select({ ios: 0.33, default: 0 }), backgroundColor: theme.colors.divider }} />
+            )}
+            {idleSessions.map((session) => (
+                <IdleSessionRow
+                    key={session.id}
+                    session={session}
+                    agentLabel={session.metadata?.agentKey ? (agentNameMap.get(session.metadata.agentKey) ?? null) : null}
+                />
+            ))}
+        </>
     );
 });
 
@@ -79,6 +158,15 @@ export const InboxView = React.memo(({}: InboxViewProps) => {
     const isTablet = useIsTablet();
     const realtimeStatus = useRealtimeStatus();
     const waitingTasks = useWaitingTasks();
+    const { agents } = useAgentDefinitions();
+
+    const agentNameMap = React.useMemo(() => {
+        const map = new Map<string, string>();
+        for (const a of agents) {
+            map.set(`agent:${a.id}`, a.name);
+        }
+        return map;
+    }, [agents]);
 
     const isEmpty = waitingTasks.length === 0;
 
@@ -136,13 +224,53 @@ export const InboxView = React.memo(({}: InboxViewProps) => {
                 <UpdateBanner />
                 <ItemGroup title={t('inbox.waitingTasks')}>
                     {waitingTasks.map((task) => (
-                        <WaitingTaskRow key={task.id} task={task} />
+                        <WaitingTaskRow key={task.id} task={task} agentNameMap={agentNameMap} />
                     ))}
                 </ItemGroup>
             </ScrollView>
         </View>
     );
 });
+
+const idleSessionStyles = StyleSheet.create((theme) => ({
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingLeft: 48,
+        paddingRight: 16,
+        paddingVertical: 8,
+        minHeight: 34,
+    },
+    icon: {
+        marginRight: 12,
+        width: Platform.select({ ios: 29, default: 32 }),
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    content: {
+        flex: 1,
+        flexDirection: 'column',
+        gap: 2,
+    },
+    badge: {
+        alignSelf: 'flex-start',
+        backgroundColor: theme.colors.surfaceHighest,
+        borderRadius: 6,
+        paddingHorizontal: 6,
+        paddingVertical: 1,
+    },
+    badgeText: {
+        fontSize: 11,
+        ...Typography.default(),
+    },
+    message: {
+        ...Typography.default('regular'),
+        color: theme.colors.textSecondary,
+        fontSize: Platform.select({ ios: 15, default: 14 }),
+        lineHeight: 20,
+        letterSpacing: Platform.select({ ios: -0.24, default: 0.1 }),
+    },
+}));
 
 const styles = StyleSheet.create((theme) => ({
     container: {
