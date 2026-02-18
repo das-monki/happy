@@ -46,6 +46,7 @@ export class TaskEncryption {
                 ...(header.machineId && { machineId: header.machineId }),
                 ...(header.directory && { directory: header.directory }),
                 ...(header.status && { status: header.status }),
+                ...(header.archived !== undefined && { archived: header.archived }),
             };
         } catch (error) {
             console.error('Failed to decrypt task header:', error);
