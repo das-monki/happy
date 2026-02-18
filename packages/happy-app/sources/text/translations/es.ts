@@ -177,6 +177,8 @@ export const es: TranslationStructure = {
     voiceAssistantSubtitle: "Configura las preferencias de voz",
     featuresTitle: "Características",
     featuresSubtitle: "Habilitar o deshabilitar funciones de la aplicación",
+    server: "Servidor",
+    serverSubtitle: "Configuración del servidor personalizado",
     developer: "Desarrollador",
     developerTools: "Herramientas de desarrollador",
     about: "Acerca de",

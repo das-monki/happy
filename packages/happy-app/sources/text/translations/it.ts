@@ -226,6 +226,8 @@ export const it: TranslationStructure = {
     voiceAssistantSubtitle: "Configura le preferenze vocali",
     featuresTitle: "Funzionalità",
     featuresSubtitle: "Abilita o disabilita le funzionalità dell'app",
+    server: "Server",
+    serverSubtitle: "Configurazione server personalizzato",
     developer: "Sviluppatore",
     developerTools: "Strumenti sviluppatore",
     about: "Informazioni",

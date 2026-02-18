@@ -7,7 +7,7 @@ import { t } from '@/text';
 import { Typography } from '@/constants/Typography';
 import { layout } from '@/components/layout';
 
-export type TabType = 'inbox' | 'tasks' | 'sessions' | 'settings';
+export type TabType = 'inbox' | 'tasks' | 'sessions';
 
 interface TabBarProps {
     activeTab: TabType;
@@ -80,7 +80,6 @@ export const TabBar = React.memo(({ activeTab, onTabPress, inboxBadgeCount = 0 }
             { key: 'inbox', icon: require('@/assets/images/brutalist/Brutalism 27.png'), label: t('tabs.inbox') },
             { key: 'tasks', icon: require('@/assets/images/brutalist/Brutalism 44.png'), label: t('tabs.tasks') },
             { key: 'sessions', icon: require('@/assets/images/brutalist/Brutalism 15.png'), label: t('tabs.sessions') },
-            { key: 'settings', icon: require('@/assets/images/brutalist/Brutalism 9.png'), label: t('tabs.settings') },
         ];
     }, []);
 

@@ -228,6 +228,8 @@ export const ja: TranslationStructure = {
     voiceAssistantSubtitle: "音声操作の設定",
     featuresTitle: "機能",
     featuresSubtitle: "アプリ機能の有効/無効を切り替え",
+    server: "サーバー",
+    serverSubtitle: "カスタムサーバー設定",
     developer: "開発者",
     developerTools: "開発者ツール",
     about: "このアプリについて",

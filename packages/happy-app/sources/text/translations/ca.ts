@@ -178,6 +178,8 @@ export const ca: TranslationStructure = {
     voiceAssistantSubtitle: "Configura les preferències d'interacció per veu",
     featuresTitle: "Funcions",
     featuresSubtitle: "Activa o desactiva les funcions de l'aplicació",
+    server: "Servidor",
+    serverSubtitle: "Configuració del servidor personalitzat",
     developer: "Desenvolupador",
     developerTools: "Eines de desenvolupador",
     about: "Quant a",

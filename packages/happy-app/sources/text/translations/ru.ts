@@ -160,6 +160,8 @@ export const ru: TranslationStructure = {
     voiceAssistantSubtitle: "Настройка предпочтений голосового взаимодействия",
     featuresTitle: "Возможности",
     featuresSubtitle: "Включить или отключить функции приложения",
+    server: "Сервер",
+    serverSubtitle: "Настройки пользовательского сервера",
     developer: "Разработчик",
     developerTools: "Инструменты разработчика",
     about: "О программе",

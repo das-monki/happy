@@ -177,6 +177,8 @@ export const zhHant: TranslationStructure = {
     voiceAssistantSubtitle: "設定語音互動偏好",
     featuresTitle: "功能",
     featuresSubtitle: "啟用或停用應用程式功能",
+    server: "伺服器",
+    serverSubtitle: "自訂伺服器設定",
     developer: "開發者",
     developerTools: "開發者工具",
     about: "關於",

@@ -190,6 +190,8 @@ export const pl: TranslationStructure = {
     voiceAssistantSubtitle: "Konfiguruj preferencje interakcji głosowej",
     featuresTitle: "Funkcje",
     featuresSubtitle: "Włącz lub wyłącz funkcje aplikacji",
+    server: "Serwer",
+    serverSubtitle: "Konfiguracja własnego serwera",
     developer: "Deweloper",
     developerTools: "Narzędzia deweloperskie",
     about: "O aplikacji",

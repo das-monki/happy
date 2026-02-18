@@ -208,6 +208,18 @@ export const SettingsView = React.memo(function SettingsView() {
                 />
             </ItemGroup>
 
+            {/* Custom Server */}
+            {isCustomServer && (
+                <ItemGroup title={t('settings.server')}>
+                    <Item
+                        title={t('settings.server')}
+                        subtitle={t('settings.serverSubtitle')}
+                        icon={<Ionicons name="server-outline" size={29} color="#007AFF" />}
+                        onPress={() => router.push('/server')}
+                    />
+                </ItemGroup>
+            )}
+
             <ItemGroup title={t('settings.connectedAccounts')}>
                 <Item
                     title="Claude Code"
