@@ -100,6 +100,13 @@ const styles = StyleSheet.create((theme) => ({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    filterDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#007AFF',
+        marginLeft: 4,
+    },
 }));
 
 // Tab header configuration
@@ -172,12 +179,17 @@ const HeaderTitle = React.memo(({
                     {t(TAB_TITLES[activeTab])}
                 </Text>
                 {showFilter && (
-                    <Ionicons
-                        name="chevron-down"
-                        size={14}
-                        color={theme.colors.header.tint}
-                        style={{ marginLeft: 4 }}
-                    />
+                    <>
+                        <Ionicons
+                            name="chevron-down"
+                            size={14}
+                            color={theme.colors.header.tint}
+                            style={{ marginLeft: 4 }}
+                        />
+                        {directoryFilter !== null && (
+                            <View style={styles.filterDot} />
+                        )}
+                    </>
                 )}
             </View>
             {connectionStatus.text && (
