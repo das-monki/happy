@@ -450,6 +450,14 @@ export const SettingsSchema = z.object({
     .describe(
       "Tracks which CLI installation warnings user has dismissed (per-machine or globally)",
     ),
+  // Assistant overlay settings
+  assistantAgent: z
+    .enum(["claude", "codex", "gemini"])
+    .describe("CLI agent for the assistant"),
+  assistantSessionId: z
+    .string()
+    .nullable()
+    .describe("Active assistant session ID"),
 });
 
 //
@@ -509,6 +517,9 @@ export const settingsDefaults: Settings = {
   speechToTextModel: "tiny.en",
   // Dismissed CLI warnings (empty by default)
   dismissedCLIWarnings: { perMachine: {}, global: {} },
+  // Assistant overlay defaults
+  assistantAgent: "claude",
+  assistantSessionId: null,
 };
 Object.freeze(settingsDefaults);
 

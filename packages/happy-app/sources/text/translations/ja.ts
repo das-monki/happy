@@ -81,9 +81,18 @@ export const ja: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "タスクを再開",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count}件のアクティブなセッションが停止されます。セッション履歴は保持されます。`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count}件のアクティブなセッションが停止され、すべてのセッションデータが完全に削除されます。「${name}」を削除してもよろしいですか？`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count}件のアクティブなセッションが停止されます。セッション履歴は保持されます。`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count}件のアクティブなセッションが停止され、すべてのセッションデータが完全に削除されます。「${name}」を削除してもよろしいですか？`,
     completeTitle: "タスクを完了",
     completeConfirm: "完了",
     failTitle: "失敗としてマーク",
@@ -152,11 +161,26 @@ export const ja: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "アシスタント",
+    placeholder: "アシスタントに質問...",
+    startAssistant: "アシスタントを開始",
+    noMachineOnline: "オンラインのマシンがありません",
+    clearConversation: "新しい会話",
+    clearConfirmTitle: "新しい会話",
+    clearConfirmMessage: "現在の会話を終了し、新しい会話を開始します。",
+    connecting: "開始中...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "タスクとセッションを管理するAIアシスタント",
   },
 
   profiles: {
@@ -353,7 +377,8 @@ export const ja: TranslationStructure = {
     enhancedSessionWizardEnabled: "プロファイル優先セッションランチャーが有効",
     enhancedSessionWizardDisabled: "標準セッションランチャーを使用",
     speechToText: "音声テキスト変換",
-    speechToTextDescription: "Whisperを使用してデバイス上で音声をテキストに変換します。モデルは初回使用時にダウンロードされます。",
+    speechToTextDescription:
+      "Whisperを使用してデバイス上で音声をテキストに変換します。モデルは初回使用時にダウンロードされます。",
     speechToTextEnabled: "音声テキスト変換が有効",
     speechToTextDisabled: "音声テキスト変換が無効",
     speechToTextModel: "Whisper モデル",
@@ -365,7 +390,8 @@ export const ja: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "準備完了",
     speechToTextModelNotDownloaded: "未ダウンロード",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `ダウンロード中\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `ダウンロード中\u2026 ${progress}%`,
     speechToTextRecording: "録音中\u2026",
     speechToTextTranscribing: "文字起こし中\u2026",
     speechToTextError: "文字起こしに失敗しました",

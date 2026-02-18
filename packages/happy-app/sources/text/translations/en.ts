@@ -95,9 +95,18 @@ export const en: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Reopen Task",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count} active session(s) will be stopped. Session history will be preserved.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} active session(s) will be stopped and all session data permanently deleted. Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count} active session(s) will be stopped. Session history will be preserved.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count} active session(s) will be stopped and all session data permanently deleted. Are you sure you want to delete "${name}"?`,
     completeTitle: "Complete Task",
     completeConfirm: "Complete",
     failTitle: "Mark as Failed",
@@ -318,7 +327,8 @@ export const en: TranslationStructure = {
     enhancedSessionWizardEnabled: "Profile-first session launcher active",
     enhancedSessionWizardDisabled: "Using standard session launcher",
     speechToText: "Speech to Text",
-    speechToTextDescription: "Enable on-device speech-to-text transcription using Whisper. Models are downloaded on first use.",
+    speechToTextDescription:
+      "Enable on-device speech-to-text transcription using Whisper. Models are downloaded on first use.",
     speechToTextEnabled: "Speech to text enabled",
     speechToTextDisabled: "Speech to text disabled",
     speechToTextModel: "Whisper Model",
@@ -330,7 +340,8 @@ export const en: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Ready",
     speechToTextModelNotDownloaded: "Not downloaded",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Downloading\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Downloading\u2026 ${progress}%`,
     speechToTextRecording: "Recording\u2026",
     speechToTextTranscribing: "Transcribing\u2026",
     speechToTextError: "Transcription failed",
@@ -1101,11 +1112,27 @@ export const en: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Assistant",
+    placeholder: "Ask your assistant...",
+    startAssistant: "Start Assistant",
+    noMachineOnline: "No machine online",
+    clearConversation: "New Conversation",
+    clearConfirmTitle: "New Conversation",
+    clearConfirmMessage:
+      "This will end the current conversation and start a new one.",
+    connecting: "Starting...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "Your AI assistant for managing tasks and sessions",
   },
 
   profiles: {

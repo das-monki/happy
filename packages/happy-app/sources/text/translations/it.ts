@@ -78,9 +78,18 @@ export const it: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Riapri attività",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count} sessione/i attiva/e verranno interrotte. La cronologia delle sessioni verrà conservata.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} sessione/i attiva/e verranno interrotte e tutti i dati delle sessioni verranno eliminati permanentemente. Sei sicuro di voler eliminare "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count} sessione/i attiva/e verranno interrotte. La cronologia delle sessioni verrà conservata.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count} sessione/i attiva/e verranno interrotte e tutti i dati delle sessioni verranno eliminati permanentemente. Sei sicuro di voler eliminare "${name}"?`,
     completeTitle: "Completa attività",
     completeConfirm: "Completa",
     failTitle: "Segna come fallita",
@@ -149,11 +158,27 @@ export const it: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Assistente",
+    placeholder: "Chiedi al tuo assistente...",
+    startAssistant: "Avvia assistente",
+    noMachineOnline: "Nessuna macchina online",
+    clearConversation: "Nuova conversazione",
+    clearConfirmTitle: "Nuova conversazione",
+    clearConfirmMessage:
+      "Questo terminerà la conversazione attuale e ne avvierà una nuova.",
+    connecting: "Avvio in corso...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "Il tuo assistente AI per gestire attività e sessioni",
   },
 
   profiles: {
@@ -358,7 +383,8 @@ export const it: TranslationStructure = {
     enhancedSessionWizardEnabled: "Avvio sessioni con profili attivo",
     enhancedSessionWizardDisabled: "Usando avvio sessioni standard",
     speechToText: "Riconoscimento vocale",
-    speechToTextDescription: "Abilita la trascrizione vocale sul dispositivo usando Whisper. I modelli vengono scaricati al primo utilizzo.",
+    speechToTextDescription:
+      "Abilita la trascrizione vocale sul dispositivo usando Whisper. I modelli vengono scaricati al primo utilizzo.",
     speechToTextEnabled: "Riconoscimento vocale abilitato",
     speechToTextDisabled: "Riconoscimento vocale disabilitato",
     speechToTextModel: "Modello Whisper",
@@ -370,7 +396,8 @@ export const it: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Pronto",
     speechToTextModelNotDownloaded: "Non scaricato",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Download\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Download\u2026 ${progress}%`,
     speechToTextRecording: "Registrazione\u2026",
     speechToTextTranscribing: "Trascrizione\u2026",
     speechToTextError: "Trascrizione non riuscita",

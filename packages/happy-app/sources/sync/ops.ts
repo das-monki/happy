@@ -156,6 +156,8 @@ export interface SpawnSessionOptions {
     agentKey?: string | null;
     // Agent system prompt injected at CLI level via env var (not mixed into user messages)
     agentSystemPrompt?: string | null;
+    // Mark this session as an assistant session (sets HAPPY_ASSISTANT_SESSION and HAPPY_ASSISTANT_TOOLS env vars)
+    isAssistant?: boolean;
 }
 
 // Exported session operation functions
@@ -165,7 +167,12 @@ export interface SpawnSessionOptions {
  */
 export async function machineSpawnNewSession(options: SpawnSessionOptions): Promise<SpawnSessionResult> {
 
-    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, taskId, environmentVariables, agentKey, agentSystemPrompt } = options;
+    const { machineId, directory, approvedNewDirectoryCreation = false, token, agent, taskId, environmentVariables, agentKey, agentSystemPrompt, isAssistant } = options;
+
+    // Merge assistant env vars if this is an assistant session
+    const finalEnvironmentVariables = isAssistant
+        ? { ...environmentVariables, HAPPY_ASSISTANT_SESSION: 'true', HAPPY_ASSISTANT_TOOLS: 'true' }
+        : environmentVariables;
 
     try {
         const result = await apiSocket.machineRPC<SpawnSessionResult, {
@@ -181,7 +188,7 @@ export async function machineSpawnNewSession(options: SpawnSessionOptions): Prom
         }>(
             machineId,
             'spawn-happy-session',
-            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, taskId, environmentVariables, agentKey, agentSystemPrompt }
+            { type: 'spawn-in-directory', directory, approvedNewDirectoryCreation, token, agent, taskId, environmentVariables: finalEnvironmentVariables, agentKey, agentSystemPrompt }
         );
         return result;
     } catch (error) {

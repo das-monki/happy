@@ -157,13 +157,15 @@ interface StorageState {
 
 // Helper function to build unified list view data from sessions and machines
 function buildSessionListViewData(
-    sessions: Record<string, Session>
+    sessions: Record<string, Session>,
+    excludeSessionId?: string | null
 ): SessionListViewItem[] {
     // Separate active and inactive sessions
     const activeSessions: Session[] = [];
     const inactiveSessions: Session[] = [];
 
     Object.values(sessions).forEach(session => {
+        if (excludeSessionId && session.id === excludeSessionId) return;
         if (isSessionActive(session)) {
             activeSessions.push(session);
         } else {
@@ -457,7 +459,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Build new unified list view data
             const sessionListViewData = buildSessionListViewData(
-                mergedSessions
+                mergedSessions,
+                state.settings.assistantSessionId
             );
 
             // Update project manager with current sessions and machines
@@ -776,7 +779,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Rebuild sessionListViewData to update the UI immediately
             const sessionListViewData = buildSessionListViewData(
-                updatedSessions
+                updatedSessions,
+                state.settings.assistantSessionId
             );
 
             return {
@@ -867,7 +871,8 @@ export const storage = create<StorageState>()((set, get) => {
 
             // Rebuild sessionListViewData to reflect machine changes
             const sessionListViewData = buildSessionListViewData(
-                state.sessions
+                state.sessions,
+                state.settings.assistantSessionId
             );
 
             return {
@@ -966,7 +971,7 @@ export const storage = create<StorageState>()((set, get) => {
             saveSessionPermissionModes(modes);
             
             // Rebuild sessionListViewData without the deleted session
-            const sessionListViewData = buildSessionListViewData(remainingSessions);
+            const sessionListViewData = buildSessionListViewData(remainingSessions, state.settings.assistantSessionId);
             
             return {
                 ...state,
@@ -1108,6 +1113,14 @@ export function useSessions() {
 
 export function useSession(id: string): Session | null {
     return storage(useShallow((state) => state.sessions[id] ?? null));
+}
+
+export function useAssistantSessionData(): Session | null {
+    return storage(useShallow((state) => {
+        const id = state.settings.assistantSessionId;
+        if (!id) return null;
+        return state.sessions[id] ?? null;
+    }));
 }
 
 const emptyArray: unknown[] = [];

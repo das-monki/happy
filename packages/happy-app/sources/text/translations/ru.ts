@@ -91,9 +91,18 @@ export const ru: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Возобновить задачу",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count} активных сессий будет остановлено. История сессий будет сохранена.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} активных сессий будет остановлено, и все данные сессий будут безвозвратно удалены. Вы уверены, что хотите удалить "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count} активных сессий будет остановлено. История сессий будет сохранена.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count} активных сессий будет остановлено, и все данные сессий будут безвозвратно удалены. Вы уверены, что хотите удалить "${name}"?`,
     completeTitle: "Завершить задачу",
     completeConfirm: "Завершить",
     failTitle: "Отметить как неудачную",
@@ -258,8 +267,7 @@ export const ru: TranslationStructure = {
     showFlavorIconsDescription:
       "Отображать иконки провайдеров ИИ на аватарах сессий",
     showArchivedTasks: "Показывать архивные задачи",
-    showArchivedTasksDescription:
-      "Отображать архивные задачи в списке задач",
+    showArchivedTasksDescription: "Отображать архивные задачи в списке задач",
     compactSessionView: "Компактный вид сессий",
     compactSessionViewDescription:
       "Отображать активные сессии в более компактном виде",
@@ -292,7 +300,8 @@ export const ru: TranslationStructure = {
     enhancedSessionWizardEnabled: "Лаунчер с профилем активен",
     enhancedSessionWizardDisabled: "Используется стандартный лаунчер",
     speechToText: "Распознавание речи",
-    speechToTextDescription: "Включить распознавание речи на устройстве с помощью Whisper. Модели загружаются при первом использовании.",
+    speechToTextDescription:
+      "Включить распознавание речи на устройстве с помощью Whisper. Модели загружаются при первом использовании.",
     speechToTextEnabled: "Распознавание речи включено",
     speechToTextDisabled: "Распознавание речи отключено",
     speechToTextModel: "Модель Whisper",
@@ -304,7 +313,8 @@ export const ru: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Готово",
     speechToTextModelNotDownloaded: "Не загружено",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Загрузка\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Загрузка\u2026 ${progress}%`,
     speechToTextRecording: "Запись\u2026",
     speechToTextTranscribing: "Транскрибирование\u2026",
     speechToTextError: "Ошибка транскрибирования",
@@ -1125,11 +1135,26 @@ export const ru: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Ассистент",
+    placeholder: "Спросите ассистента...",
+    startAssistant: "Запустить ассистента",
+    noMachineOnline: "Нет машин в сети",
+    clearConversation: "Новый разговор",
+    clearConfirmTitle: "Новый разговор",
+    clearConfirmMessage: "Это завершит текущий разговор и начнёт новый.",
+    connecting: "Запуск...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "Ваш ИИ-ассистент для управления задачами и сессиями",
   },
 
   profiles: {

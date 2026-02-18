@@ -80,9 +80,18 @@ export const zhHant: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "重新開啟任務",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count} 個活躍的工作階段將被停止。工作階段歷史記錄將被保留。`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} 個活躍的工作階段將被停止，所有工作階段資料將被永久刪除。確定要刪除「${name}」嗎？`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count} 個活躍的工作階段將被停止。工作階段歷史記錄將被保留。`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count} 個活躍的工作階段將被停止，所有工作階段資料將被永久刪除。確定要刪除「${name}」嗎？`,
     completeTitle: "完成任務",
     completeConfirm: "完成",
     failTitle: "標記為失敗",
@@ -296,7 +305,8 @@ export const zhHant: TranslationStructure = {
     enhancedSessionWizardEnabled: "設定檔優先的工作階段啟動器已啟用",
     enhancedSessionWizardDisabled: "使用標準工作階段啟動器",
     speechToText: "語音轉文字",
-    speechToTextDescription: "啟用使用 Whisper 的裝置端語音轉文字轉錄。模型在首次使用時下載。",
+    speechToTextDescription:
+      "啟用使用 Whisper 的裝置端語音轉文字轉錄。模型在首次使用時下載。",
     speechToTextEnabled: "語音轉文字已啟用",
     speechToTextDisabled: "語音轉文字已停用",
     speechToTextModel: "Whisper 模型",
@@ -308,7 +318,8 @@ export const zhHant: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "就緒",
     speechToTextModelNotDownloaded: "未下載",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `下載中\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `下載中\u2026 ${progress}%`,
     speechToTextRecording: "錄音中\u2026",
     speechToTextTranscribing: "轉錄中\u2026",
     speechToTextError: "轉錄失敗",
@@ -1055,11 +1066,26 @@ export const zhHant: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "助理",
+    placeholder: "詢問你的助理...",
+    startAssistant: "啟動助理",
+    noMachineOnline: "沒有機器在線",
+    clearConversation: "新對話",
+    clearConfirmTitle: "新對話",
+    clearConfirmMessage: "這將結束目前的對話並開始新的對話。",
+    connecting: "啟動中...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "您的AI助理，協助管理任務和工作階段",
   },
 
   profiles: {

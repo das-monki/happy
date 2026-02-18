@@ -20,6 +20,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/constants/Typography';
 import { t } from '@/text';
 import { DirectoryFilterDropdown, DirectoryOption } from './DirectoryFilterDropdown';
+import { AssistantButton } from './AssistantButton';
+import { AssistantOverlay } from './AssistantOverlay';
+import { useAssistantSession } from '@/hooks/useAssistantSession';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MainViewProps {
     variant: 'phone' | 'sidebar';
@@ -279,6 +283,11 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     // Directory filter state — persists across tab switches
     const [directoryFilter, setDirectoryFilter] = React.useState<string | null>(null);
 
+    // Assistant overlay
+    const [assistantVisible, setAssistantVisible] = React.useState(false);
+    const assistant = useAssistantSession();
+    const safeArea = useSafeAreaInsets();
+
     // Compute unique directories from all tasks
     const directories = React.useMemo<DirectoryOption[]>(() => {
         const seen = new Map<string, string>();
@@ -299,6 +308,13 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
 
     const handleTabPress = React.useCallback((tab: TabType) => {
         setActiveTab(tab);
+    }, []);
+
+    const handleAssistantOpen = React.useCallback(() => {
+        setAssistantVisible(true);
+    }, []);
+    const handleAssistantClose = React.useCallback(() => {
+        setAssistantVisible(false);
     }, []);
 
     // Regular phone mode with tabs - define this before any conditional returns
@@ -379,10 +395,19 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
                 </View>
                 {renderTabContent()}
             </View>
+            <AssistantButton
+                onPress={handleAssistantOpen}
+                bottom={50 + safeArea.bottom + 32}
+            />
             <TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 inboxBadgeCount={waitingTasks.length}
+            />
+            <AssistantOverlay
+                visible={assistantVisible}
+                onClose={handleAssistantClose}
+                assistant={assistant}
             />
         </>
     );

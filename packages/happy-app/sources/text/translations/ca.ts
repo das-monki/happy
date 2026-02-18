@@ -78,9 +78,18 @@ export const ca: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Reobrir tasca",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `S'aturaran ${count} sessió/ns activa/es. L'historial de sessions es conservarà.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `S'aturaran ${count} sessió/ns activa/es i totes les dades de sessió s'eliminaran permanentment. Estàs segur que vols eliminar "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `S'aturaran ${count} sessió/ns activa/es. L'historial de sessions es conservarà.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `S'aturaran ${count} sessió/ns activa/es i totes les dades de sessió s'eliminaran permanentment. Estàs segur que vols eliminar "${name}"?`,
     completeTitle: "Completar tasca",
     completeConfirm: "Completar",
     failTitle: "Marcar com a fallida",
@@ -310,7 +319,8 @@ export const ca: TranslationStructure = {
     enhancedSessionWizardEnabled: "Llançador de sessió amb perfil actiu",
     enhancedSessionWizardDisabled: "Usant el llançador de sessió estàndard",
     speechToText: "Veu a text",
-    speechToTextDescription: "Activa la transcripció de veu a text al dispositiu amb Whisper. Els models es descarreguen al primer ús.",
+    speechToTextDescription:
+      "Activa la transcripció de veu a text al dispositiu amb Whisper. Els models es descarreguen al primer ús.",
     speechToTextEnabled: "Veu a text activat",
     speechToTextDisabled: "Veu a text desactivat",
     speechToTextModel: "Model Whisper",
@@ -322,7 +332,8 @@ export const ca: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Llest",
     speechToTextModelNotDownloaded: "No descarregat",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Descarregant\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Descarregant\u2026 ${progress}%`,
     speechToTextRecording: "Enregistrant\u2026",
     speechToTextTranscribing: "Transcrivint\u2026",
     speechToTextError: "La transcripció ha fallat",
@@ -1095,11 +1106,27 @@ export const ca: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Assistent",
+    placeholder: "Pregunta al teu assistent...",
+    startAssistant: "Iniciar assistent",
+    noMachineOnline: "Cap màquina en línia",
+    clearConversation: "Nova conversa",
+    clearConfirmTitle: "Nova conversa",
+    clearConfirmMessage:
+      "Això finalitzarà la conversa actual i en començarà una de nova.",
+    connecting: "Iniciant...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "El teu assistent d'IA per gestionar tasques i sessions",
   },
 
   profiles: {

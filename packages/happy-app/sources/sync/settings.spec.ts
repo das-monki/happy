@@ -132,6 +132,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       };
       const delta: Partial<Settings> = {
         viewInline: true,
@@ -169,6 +171,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       });
     });
 
@@ -206,6 +210,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       };
       const delta: Partial<Settings> = {};
       expect(applySettings(currentSettings, delta)).toEqual(currentSettings);
@@ -245,6 +251,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       };
       const delta: Partial<Settings> = {
         viewInline: false,
@@ -289,6 +297,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       };
       expect(applySettings(currentSettings, {})).toEqual(currentSettings);
     });
@@ -342,6 +352,8 @@ describe("settings", () => {
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
         dismissedCLIWarnings: { perMachine: {}, global: {} },
+        assistantAgent: "claude",
+        assistantSessionId: null,
       };
       const delta: any = {
         viewInline: false,
@@ -407,6 +419,8 @@ describe("settings", () => {
         useEnhancedSessionWizard: false,
         speechToTextEnabled: false,
         speechToTextModel: "tiny.en",
+        assistantAgent: "claude",
+        assistantSessionId: null,
       });
     });
 

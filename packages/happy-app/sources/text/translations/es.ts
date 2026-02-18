@@ -78,9 +78,18 @@ export const es: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Reabrir tarea",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `Se detendrán ${count} sesión(es) activa(s). El historial de sesiones se conservará.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `Se detendrán ${count} sesión(es) activa(s) y todos los datos de sesión se eliminarán permanentemente. ¿Estás seguro de que quieres eliminar "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `Se detendrán ${count} sesión(es) activa(s). El historial de sesiones se conservará.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `Se detendrán ${count} sesión(es) activa(s) y todos los datos de sesión se eliminarán permanentemente. ¿Estás seguro de que quieres eliminar "${name}"?`,
     completeTitle: "Completar tarea",
     completeConfirm: "Completar",
     failTitle: "Marcar como fallida",
@@ -310,7 +319,8 @@ export const es: TranslationStructure = {
     enhancedSessionWizardEnabled: "Lanzador de sesión con perfil activo",
     enhancedSessionWizardDisabled: "Usando el lanzador de sesión estándar",
     speechToText: "Voz a texto",
-    speechToTextDescription: "Habilitar la transcripción de voz a texto en el dispositivo usando Whisper. Los modelos se descargan en el primer uso.",
+    speechToTextDescription:
+      "Habilitar la transcripción de voz a texto en el dispositivo usando Whisper. Los modelos se descargan en el primer uso.",
     speechToTextEnabled: "Voz a texto habilitado",
     speechToTextDisabled: "Voz a texto deshabilitado",
     speechToTextModel: "Modelo Whisper",
@@ -322,7 +332,8 @@ export const es: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Listo",
     speechToTextModelNotDownloaded: "No descargado",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Descargando\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Descargando\u2026 ${progress}%`,
     speechToTextRecording: "Grabando\u2026",
     speechToTextTranscribing: "Transcribiendo\u2026",
     speechToTextError: "La transcripción falló",
@@ -1104,11 +1115,27 @@ export const es: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Asistente",
+    placeholder: "Pregunta a tu asistente...",
+    startAssistant: "Iniciar asistente",
+    noMachineOnline: "Ninguna máquina en línea",
+    clearConversation: "Nueva conversación",
+    clearConfirmTitle: "Nueva conversación",
+    clearConfirmMessage:
+      "Esto finalizará la conversación actual e iniciará una nueva.",
+    connecting: "Iniciando...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "Tu asistente de IA para gestionar tareas y sesiones",
   },
 
   profiles: {

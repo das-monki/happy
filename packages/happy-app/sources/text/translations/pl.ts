@@ -91,9 +91,18 @@ export const pl: TranslationStructure = {
     markFailed: "Mark as Failed",
     reopen: "Wznów zadanie",
     deleteTitle: "Delete Task",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
-    archiveSessionsWarning: ({ count }: { count: number }) => `${count} aktywnych sesji zostanie zatrzymanych. Historia sesji zostanie zachowana.`,
-    deleteWithSessionsWarning: ({ count, name }: { count: number; name: string }) => `${count} aktywnych sesji zostanie zatrzymanych, a wszystkie dane sesji zostaną trwale usunięte. Czy na pewno chcesz usunąć "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+    archiveSessionsWarning: ({ count }: { count: number }) =>
+      `${count} aktywnych sesji zostanie zatrzymanych. Historia sesji zostanie zachowana.`,
+    deleteWithSessionsWarning: ({
+      count,
+      name,
+    }: {
+      count: number;
+      name: string;
+    }) =>
+      `${count} aktywnych sesji zostanie zatrzymanych, a wszystkie dane sesji zostaną trwale usunięte. Czy na pewno chcesz usunąć "${name}"?`,
     completeTitle: "Zakończ zadanie",
     completeConfirm: "Zakończ",
     failTitle: "Oznacz jako nieudane",
@@ -320,7 +329,8 @@ export const pl: TranslationStructure = {
     enhancedSessionWizardEnabled: "Aktywny launcher z profilem",
     enhancedSessionWizardDisabled: "Używanie standardowego launchera sesji",
     speechToText: "Zamiana mowy na tekst",
-    speechToTextDescription: "Włącz transkrypcję mowy na tekst na urządzeniu za pomocą Whisper. Modele są pobierane przy pierwszym użyciu.",
+    speechToTextDescription:
+      "Włącz transkrypcję mowy na tekst na urządzeniu za pomocą Whisper. Modele są pobierane przy pierwszym użyciu.",
     speechToTextEnabled: "Zamiana mowy na tekst włączona",
     speechToTextDisabled: "Zamiana mowy na tekst wyłączona",
     speechToTextModel: "Model Whisper",
@@ -332,7 +342,8 @@ export const pl: TranslationStructure = {
     speechToTextModelSmallEnSize: "466 MB",
     speechToTextModelReady: "Gotowy",
     speechToTextModelNotDownloaded: "Nie pobrano",
-    speechToTextModelDownloading: ({ progress }: { progress: number }) => `Pobieranie\u2026 ${progress}%`,
+    speechToTextModelDownloading: ({ progress }: { progress: number }) =>
+      `Pobieranie\u2026 ${progress}%`,
     speechToTextRecording: "Nagrywanie\u2026",
     speechToTextTranscribing: "Transkrybowanie\u2026",
     speechToTextError: "Transkrypcja nie powiodła się",
@@ -1126,11 +1137,26 @@ export const pl: TranslationStructure = {
     descriptionPlaceholder: "What does this agent do?",
     promptTemplate: "Prompt Template",
     promptTemplatePlaceholder: "Enter the system prompt for this agent...",
-    promptTemplateDescription: "This prompt will be prepended to conversations when the agent runs a task.",
+    promptTemplateDescription:
+      "This prompt will be prepended to conversations when the agent runs a task.",
     empty: "No Agents",
     emptyDescription: "Create agent definitions to use with tasks.",
     deleteTitle: "Delete Agent",
-    deleteMessage: ({ name }: { name: string }) => `Are you sure you want to delete "${name}"?`,
+    deleteMessage: ({ name }: { name: string }) =>
+      `Are you sure you want to delete "${name}"?`,
+  },
+
+  assistant: {
+    title: "Asystent",
+    placeholder: "Zapytaj asystenta...",
+    startAssistant: "Uruchom asystenta",
+    noMachineOnline: "Brak maszyn online",
+    clearConversation: "Nowa rozmowa",
+    clearConfirmTitle: "Nowa rozmowa",
+    clearConfirmMessage: "To zakończy bieżącą rozmowę i rozpocznie nową.",
+    connecting: "Uruchamianie...",
+    emptyTitle: "Happy Assistant",
+    emptyDescription: "Twój asystent AI do zarządzania zadaniami i sesjami",
   },
 
   profiles: {
