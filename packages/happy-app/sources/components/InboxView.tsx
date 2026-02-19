@@ -77,15 +77,15 @@ const IdleSessionRow = React.memo(function IdleSessionRow({
                     <Ionicons name="terminal-outline" size={20} color={theme.colors.textSecondary} />
                 </View>
                 <View style={idleSessionStyles.content}>
-                    {(agentLabel || session.metadata?.agentKey) && (
-                        <View style={[idleSessionStyles.badge, !agentLabel && { opacity: 0 }]}>
-                            <Text style={[idleSessionStyles.badgeText, { color: theme.colors.textSecondary }]}>{agentLabel || ' '}</Text>
-                        </View>
-                    )}
                     <Text style={idleSessionStyles.message} numberOfLines={1}>
                         {lastLine || t('tasks.stateWaiting')}
                     </Text>
                 </View>
+                {agentLabel && (
+                    <View style={idleSessionStyles.badge}>
+                        <Text style={[idleSessionStyles.badgeText, { color: theme.colors.textSecondary }]}>{agentLabel}</Text>
+                    </View>
+                )}
                 <Ionicons
                     name="chevron-forward"
                     size={Platform.select({ ios: 17, default: 24 })}
@@ -135,7 +135,10 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({
                 showDivider={idleSessions.length === 0}
             />
             {idleSessions.length > 0 && (
-                <View style={{ height: Platform.select({ ios: 0.33, default: 0 }), backgroundColor: theme.colors.divider }} />
+                <>
+                    <View style={{ height: Platform.select({ ios: 0.33, default: 0 }), backgroundColor: theme.colors.divider }} />
+                    <View style={{ height: 4 }} />
+                </>
             )}
             {idleSessions.map((session) => (
                 <IdleSessionRow
@@ -144,6 +147,9 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({
                     agentLabel={session.metadata?.agentKey ? (agentNameMap.get(session.metadata.agentKey) ?? null) : null}
                 />
             ))}
+            {idleSessions.length > 0 && (
+                <View style={{ height: 4 }} />
+            )}
         </>
     );
 });
@@ -270,15 +276,13 @@ const idleSessionStyles = StyleSheet.create((theme) => ({
     },
     content: {
         flex: 1,
-        flexDirection: 'column',
-        gap: 2,
     },
     badge: {
-        alignSelf: 'flex-start',
         backgroundColor: theme.colors.surfaceHighest,
         borderRadius: 6,
         paddingHorizontal: 6,
         paddingVertical: 1,
+        marginLeft: 8,
     },
     badgeText: {
         fontSize: 11,
