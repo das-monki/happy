@@ -225,6 +225,7 @@
               --add-flags "$out/lib/happy-server/packages/happy-server/sources/main.ts" \
               --set PRISMA_QUERY_ENGINE_LIBRARY "${pkgs.prisma-engines}/lib/libquery_engine.node" \
               --set PRISMA_SCHEMA_ENGINE_BINARY "${pkgs.prisma-engines}/bin/schema-engine" \
+              --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ pkgs.openssl ]}" \
               --chdir "$out/lib/happy-server/packages/happy-server" \
               --prefix PATH : ${
                 lib.makeBinPath [
@@ -241,6 +242,7 @@
               --add-flags "deploy" \
               --set PRISMA_QUERY_ENGINE_LIBRARY "${pkgs.prisma-engines}/lib/libquery_engine.node" \
               --set PRISMA_SCHEMA_ENGINE_BINARY "${pkgs.prisma-engines}/bin/schema-engine" \
+              --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ pkgs.openssl ]}" \
               --chdir "$out/lib/happy-server/packages/happy-server" \
               --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_22 ]}
 
