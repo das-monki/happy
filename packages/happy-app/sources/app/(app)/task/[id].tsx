@@ -10,6 +10,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
 import { sync } from '@/sync/sync';
 import { machineSpawnNewSession, sessionKill, sessionDelete } from '@/sync/ops';
+import { deleteArtifact } from '@/sync/apiArtifacts';
 import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { Modal } from '@/modal';
@@ -56,6 +57,20 @@ const LinkedSessionRow = React.memo(function LinkedSessionRow({
     const isActive = session.active;
     const name = getSessionName(session);
 
+    const handleLongPress = React.useCallback(() => {
+        if (isActive) {
+            Modal.alert(t('sessionInfo.archiveSession'), t('sessionInfo.archiveSessionConfirm'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('tasks.archive'), style: 'destructive', onPress: () => sessionKill(session.id) },
+            ]);
+        } else {
+            Modal.alert(t('sessionInfo.deleteSession'), t('sessionInfo.deleteSessionWarning'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('common.delete'), style: 'destructive', onPress: () => sessionDelete(session.id) },
+            ]);
+        }
+    }, [session.id, isActive]);
+
     return (
         <Item
             title={name}
@@ -64,6 +79,7 @@ const LinkedSessionRow = React.memo(function LinkedSessionRow({
             detailStyle={{ color: isActive ? '#34C759' : theme.colors.textSecondary }}
             icon={<Ionicons name="terminal-outline" size={20} color={isActive ? '#34C759' : theme.colors.textSecondary} />}
             onPress={() => router.push(`/session/${session.id}`)}
+            onLongPress={handleLongPress}
         />
     );
 });
@@ -710,6 +726,21 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                         title={artifact.title || artifact.id.slice(0, 8)}
                         icon={<Ionicons name="document-text-outline" size={20} color={theme.colors.textSecondary} />}
                         onPress={() => router.push(`/artifacts/${artifact.id}`)}
+                        onLongPress={() => {
+                            Modal.alert(t('artifacts.deleteConfirm'), t('artifacts.deleteConfirmDescription'), [
+                                { text: t('common.cancel'), style: 'cancel' },
+                                { text: t('common.delete'), style: 'destructive', onPress: async () => {
+                                    try {
+                                        const credentials = sync.getCredentials();
+                                        if (!credentials) return;
+                                        await deleteArtifact(credentials, artifact.id);
+                                        storage.getState().deleteArtifact(artifact.id);
+                                    } catch (e) {
+                                        console.error('Failed to delete artifact:', e);
+                                    }
+                                }},
+                            ]);
+                        }}
                     />
                 ))}
                 {!isTerminal && (
