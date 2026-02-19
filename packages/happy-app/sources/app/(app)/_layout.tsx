@@ -304,6 +304,14 @@ export default function RootLayout() {
                 }}
             />
             <Stack.Screen
+                name="settings/connect/quotas"
+                options={{
+                    headerShown: true,
+                    headerTitle: 'Quotas',
+                    headerBackTitle: t('common.back'),
+                }}
+            />
+            <Stack.Screen
                 name="task/create"
                 options={{
                     headerShown: true,

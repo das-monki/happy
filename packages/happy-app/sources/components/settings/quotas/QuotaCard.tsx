@@ -123,7 +123,7 @@ export const QuotaCard = React.memo(function QuotaCard(props: Readonly<{
                 </View>
             ) : null}
 
-            {snapshot?.meters?.map((meter) => (
+            {snapshot?.meters?.filter((m) => m.status !== 'unavailable').map((meter) => (
                 <QuotaMeterRow
                     key={meter.meterId}
                     meter={meter}

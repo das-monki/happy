@@ -25,10 +25,10 @@ function parseIsoDateMs(value: unknown): number | null {
 const WINDOW_LABELS: Readonly<Record<string, string>> = Object.freeze({
     five_hour: '5-hour',
     seven_day: 'Weekly',
-    seven_day_oauth_apps: 'Weekly (OAuth apps)',
+    // seven_day_oauth_apps: 'Weekly (OAuth apps)',
     seven_day_sonnet: 'Weekly (Sonnet)',
-    seven_day_opus: 'Weekly (Opus)',
-    iguana_necktie: 'Unknown',
+    // seven_day_opus: 'Weekly (Opus)',
+    // iguana_necktie: 'Unknown',
 });
 
 export function createAnthropicQuotaFetcher(params?: Readonly<{
