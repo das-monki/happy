@@ -17,6 +17,7 @@ import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { Modal } from '@/modal';
 import { getSessionName } from '@/utils/sessionUtils';
+import { useCLIDetection } from '@/hooks/useCLIDetection';
 import { FloatingOverlay } from '@/components/FloatingOverlay';
 import type { TaskState } from '@/sync/taskTypes';
 import type { Machine, Session } from '@/sync/storageTypes';
@@ -101,16 +102,22 @@ function machineName(machine: Machine): string {
 const AddSessionModal = React.memo(function AddSessionModal({
     agents,
     taskArtifacts,
+    initialAgentType,
     initialPermissionModeKey,
     initialModelModeKey,
+    experimentsEnabled,
+    cliAvailability,
     onCreateSession,
     onClose,
 }: {
     agents: { id: string; name: string; description: string; promptTemplate: string }[];
     taskArtifacts: DecryptedArtifact[];
+    initialAgentType: 'claude' | 'codex' | 'gemini';
     initialPermissionModeKey: string | null;
     initialModelModeKey: string | null;
-    onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null) => void;
+    experimentsEnabled: boolean;
+    cliAvailability: { claude: boolean | null; codex: boolean | null; gemini: boolean | null };
+    onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null, agentType: 'claude' | 'codex' | 'gemini') => void;
     onClose: () => void;
 }) {
     const { theme } = useUnistyles();
@@ -118,16 +125,43 @@ const AddSessionModal = React.memo(function AddSessionModal({
     const [userMessage, setUserMessage] = React.useState('');
     const [selectedArtifactIds, setSelectedArtifactIds] = React.useState<Set<string>>(new Set());
 
-    // Permission mode & model mode options (always claude flavor for task sessions)
-    const availableModes = React.useMemo(() => getAvailablePermissionModes('claude', null, t), []);
-    const availableModels = React.useMemo(() => getAvailableModels('claude', null, t), []);
+    // Coding agent type (claude, codex, gemini) — cycles on tap, skipping unavailable CLIs
+    const [agentType, setAgentType] = React.useState<'claude' | 'codex' | 'gemini'>(initialAgentType);
+    const handleAgentTypeClick = React.useCallback(() => {
+        const order: Array<'claude' | 'codex' | 'gemini'> = experimentsEnabled
+            ? ['claude', 'codex', 'gemini']
+            : ['claude', 'codex'];
+        setAgentType(prev => {
+            const currentIdx = order.indexOf(prev);
+            // Try each next agent in cycle order, skip if confirmed unavailable (false)
+            for (let i = 1; i <= order.length; i++) {
+                const candidate = order[(currentIdx + i) % order.length];
+                if (cliAvailability[candidate] !== false) return candidate;
+            }
+            return prev; // All unavailable — stay on current
+        });
+    }, [experimentsEnabled, cliAvailability]);
+
+    // Permission mode & model mode options — recomputed when agent type changes
+    const availableModes = React.useMemo(() => getAvailablePermissionModes(agentType, null, t), [agentType]);
+    const availableModels = React.useMemo(() => getAvailableModels(agentType, null, t), [agentType]);
 
     const [selectedPermissionMode, setSelectedPermissionMode] = React.useState<PermissionMode>(() =>
-        resolveCurrentOption(availableModes, [initialPermissionModeKey, getDefaultPermissionModeKey('claude')]) ?? availableModes[0]
+        resolveCurrentOption(availableModes, [initialPermissionModeKey, getDefaultPermissionModeKey(initialAgentType)]) ?? availableModes[0]
     );
     const [selectedModelMode, setSelectedModelMode] = React.useState<ModelMode>(() =>
-        resolveCurrentOption(availableModels, [initialModelModeKey, getDefaultModelKey('claude')]) ?? availableModels[0]
+        resolveCurrentOption(availableModels, [initialModelModeKey, getDefaultModelKey(initialAgentType)]) ?? availableModels[0]
     );
+
+    // Reset permission mode & model when agent type changes
+    React.useEffect(() => {
+        setSelectedPermissionMode(
+            resolveCurrentOption(availableModes, [getDefaultPermissionModeKey(agentType)]) ?? availableModes[0]
+        );
+        setSelectedModelMode(
+            resolveCurrentOption(availableModels, [getDefaultModelKey(agentType)]) ?? availableModels[0]
+        );
+    }, [agentType, availableModes, availableModels]);
 
     const [showSettings, setShowSettings] = React.useState(false);
 
@@ -328,24 +362,53 @@ const AddSessionModal = React.memo(function AddSessionModal({
                         </View>
                     </>
                 )}
-                {/* Gear row */}
-                <Pressable
-                    onPress={() => setShowSettings(prev => !prev)}
-                    style={({ pressed }) => ({
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: 10,
-                        paddingHorizontal: 16,
-                        borderTopWidth: 0.5,
-                        borderTopColor: theme.colors.divider,
-                        opacity: pressed ? 0.7 : 1,
-                    })}
-                >
-                    <Ionicons name="settings-outline" size={18} color={theme.colors.textSecondary} />
-                    <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginLeft: 6 }}>
-                        {selectedPermissionMode.name} · {selectedModelMode.name}
-                    </Text>
-                </Pressable>
+                {/* Settings row — agent type toggle + gear with mode summary */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 0.5, borderTopColor: theme.colors.divider, gap: 4 }}>
+                    <Pressable
+                        onPress={handleAgentTypeClick}
+                        style={({ pressed }) => ({
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 16,
+                            opacity: pressed ? 0.7 : 1,
+                            gap: 5,
+                        })}
+                    >
+                        <Ionicons name="hardware-chip-outline" size={14} color={
+                            cliAvailability[agentType] === null ? theme.colors.textSecondary
+                            : cliAvailability[agentType] ? theme.colors.success
+                            : theme.colors.textDestructive
+                        } />
+                        <Text style={{ fontSize: 13, fontWeight: '600', color:
+                            cliAvailability[agentType] === null ? theme.colors.textSecondary
+                            : cliAvailability[agentType] ? theme.colors.success
+                            : theme.colors.textDestructive
+                        }}>
+                            {agentType === 'claude' ? t('agentInput.agent.claude') : agentType === 'codex' ? t('agentInput.agent.codex') : t('agentInput.agent.gemini')}
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => setShowSettings(prev => !prev)}
+                        style={({ pressed }) => ({
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 16,
+                            opacity: pressed ? 0.7 : 1,
+                            gap: 5,
+                            minWidth: 0,
+                        })}
+                    >
+                        <Ionicons name="settings-outline" size={14} color={theme.colors.textSecondary} />
+                        <Text style={{ fontSize: 13, color: theme.colors.textSecondary, flex: 1 }} numberOfLines={1}>
+                            {selectedPermissionMode.name} · {selectedModelMode.name}
+                        </Text>
+                    </Pressable>
+                </View>
                 {/* Cancel / Create row */}
                 <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
                     <Pressable
@@ -359,7 +422,7 @@ const AddSessionModal = React.memo(function AddSessionModal({
                         </Text>
                     </Pressable>
                     <Pressable
-                        onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim(), [...selectedArtifactIds], selectedPermissionMode.key, selectedModelMode?.key ?? null); onClose(); }}
+                        onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim(), [...selectedArtifactIds], selectedPermissionMode.key, selectedModelMode?.key ?? null, agentType); onClose(); }}
                         style={({ pressed }) => [
                             { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
                         ]}
@@ -612,7 +675,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
     // Spawn a session with a given agent, optionally including artifact content
-    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string, selectedArtifactIds?: string[], permissionModeKey?: string, modelModeKey?: string | null) => {
+    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string, selectedArtifactIds?: string[], permissionModeKey?: string, modelModeKey?: string | null, agentType?: 'claude' | 'codex' | 'gemini') => {
         if (!task) return;
 
         if (!selectedMachineId) {
@@ -662,7 +725,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
             directory: selectedDirectory,
-            agent: 'claude',
+            agent: agentType ?? 'claude',
             taskId: id!,
             agentKey,
             agentSystemPrompt,
@@ -681,6 +744,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
 
             // Persist last-used values
             sync.applySettings({
+                lastUsedAgent: agentType ?? 'claude',
                 lastUsedPermissionMode: permissionModeKey ?? null,
                 lastUsedModelMode: modelModeKey ?? null,
             });
@@ -696,8 +760,17 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         }
     }, [task, selectedMachineId, selectedDirectory, agents, router, id]);
 
+    const lastUsedAgent = useSetting('lastUsedAgent');
     const lastUsedPermissionMode = useSetting('lastUsedPermissionMode');
     const lastUsedModelMode = useSetting('lastUsedModelMode');
+    const experimentsEnabled = useSetting('experiments');
+    const cliAvailability = useCLIDetection(selectedMachineId);
+
+    const initialAgentType = React.useMemo<'claude' | 'codex' | 'gemini'>(() => {
+        if (lastUsedAgent === 'claude' || lastUsedAgent === 'codex') return lastUsedAgent;
+        if (lastUsedAgent === 'gemini' && experimentsEnabled) return lastUsedAgent;
+        return 'claude';
+    }, [lastUsedAgent, experimentsEnabled]);
 
     const handleAddSession = React.useCallback(() => {
         Modal.show({
@@ -705,16 +778,23 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             props: {
                 agents,
                 taskArtifacts,
+                initialAgentType,
                 initialPermissionModeKey: lastUsedPermissionMode,
                 initialModelModeKey: lastUsedModelMode,
-                onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null) => {
-                    doCreateSession(agentKey, userMessage || undefined, selectedArtifactIds, permissionModeKey, modelModeKey).catch(e => {
+                experimentsEnabled: !!experimentsEnabled,
+                cliAvailability: {
+                    claude: cliAvailability.claude,
+                    codex: cliAvailability.codex,
+                    gemini: cliAvailability.gemini,
+                },
+                onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null, agentType: 'claude' | 'codex' | 'gemini') => {
+                    doCreateSession(agentKey, userMessage || undefined, selectedArtifactIds, permissionModeKey, modelModeKey, agentType).catch(e => {
                         Modal.alert(t('common.error'), e instanceof Error ? e.message : t('tasks.runFailed'));
                     });
                 },
             },
         });
-    }, [agents, taskArtifacts, lastUsedPermissionMode, lastUsedModelMode, doCreateSession]);
+    }, [agents, taskArtifacts, initialAgentType, lastUsedPermissionMode, lastUsedModelMode, experimentsEnabled, cliAvailability, doCreateSession]);
 
     // Mark task as completed — archive active sessions first
     const handleComplete = React.useCallback(() => {
