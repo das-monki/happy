@@ -26,6 +26,7 @@ import { useAssistantSession } from '@/hooks/useAssistantSession';
 import { useAssistantToolHandler } from '@/hooks/useAssistantToolHandler';
 import { useSessionArtifactToolHandler } from '@/hooks/useSessionArtifactToolHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 interface MainViewProps {
     variant: 'phone' | 'sidebar';
@@ -314,6 +315,37 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
         setActiveTab(tab);
     }, []);
 
+    // Swipe navigation: quotas ← inbox ↔ tasks ↔ sessions → settings
+    const TAB_ORDER: TabType[] = ['inbox', 'tasks', 'sessions'];
+    const swipeNavigation = React.useMemo(
+        () =>
+            Gesture.Pan()
+                .activeOffsetX([-30, 30])
+                .onEnd((e) => {
+                    const isSwipeRight = e.translationX > 80 && e.velocityX > 200;
+                    const isSwipeLeft = e.translationX < -80 && e.velocityX < -200;
+                    if (!isSwipeRight && !isSwipeLeft) return;
+
+                    const idx = TAB_ORDER.indexOf(activeTab);
+
+                    if (isSwipeRight) {
+                        if (idx > 0) {
+                            setActiveTab(TAB_ORDER[idx - 1]!);
+                        } else if (activeTab === 'inbox') {
+                            router.push('/settings/connect/quotas');
+                        }
+                    } else {
+                        if (idx < TAB_ORDER.length - 1) {
+                            setActiveTab(TAB_ORDER[idx + 1]!);
+                        } else if (activeTab === 'sessions') {
+                            router.push('/settings');
+                        }
+                    }
+                })
+                .runOnJS(true),
+        [activeTab, router],
+    );
+
     const handleAssistantOpen = React.useCallback(() => {
         setAssistantVisible(true);
     }, []);
@@ -397,7 +429,11 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
                         <VoiceAssistantStatusBar variant="full" />
                     )}
                 </View>
-                {renderTabContent()}
+                <GestureDetector gesture={swipeNavigation}>
+                    <View style={{ flex: 1 }}>
+                        {renderTabContent()}
+                    </View>
+                </GestureDetector>
             </View>
             <AssistantButton
                 onPress={handleAssistantOpen}
