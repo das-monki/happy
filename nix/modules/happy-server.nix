@@ -179,18 +179,27 @@ in
       ++ lib.optional cfg.database.createLocally "postgresql.service"
       ++ lib.optional cfg.redis.createLocally "redis-happy.service"
       ++ lib.optional cfg.minio.createLocally "minio.service";
-      preStart = lib.optionalString (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) ''
-        # Convert MINIO_ROOT_USER/PASSWORD to S3_ACCESS_KEY/SECRET_KEY
-        source ${cfg.minio.rootCredentialsFile}
-        printf 'S3_ACCESS_KEY=%s\nS3_SECRET_KEY=%s\n' "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" > /run/happy-server/s3.env
-        chmod 600 /run/happy-server/s3.env
+      # Use a script wrapper so we can source MinIO credentials and convert
+      # them to S3_ACCESS_KEY/S3_SECRET_KEY before exec-ing the server.
+      # This avoids the systemd EnvironmentFile ordering issue where
+      # EnvironmentFile is evaluated before preStart/ExecStartPre.
+      script = ''
+        ${lib.optionalString (cfg.environmentFile != null) ''
+          set -a
+          source ${cfg.environmentFile}
+          set +a
+        ''}
+        ${lib.optionalString (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) ''
+          source ${cfg.minio.rootCredentialsFile}
+          export S3_ACCESS_KEY="$MINIO_ROOT_USER"
+          export S3_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+        ''}
+        exec ${cfg.package}/bin/happy-server
       '';
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${cfg.package}/bin/happy-server";
         Restart = "on-failure";
         RestartSec = 5;
-        RuntimeDirectory = "happy-server";
 
         Environment = [
           "NODE_ENV=production"
@@ -205,12 +214,6 @@ in
           "S3_BUCKET=${cfg.minio.bucket}"
           "S3_PUBLIC_URL=http://127.0.0.1:9000/${cfg.minio.bucket}"
         ];
-
-        EnvironmentFile =
-          lib.optional (cfg.environmentFile != null) cfg.environmentFile
-          ++ lib.optional (
-            cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null
-          ) "/run/happy-server/s3.env";
 
         # Hardening
         DynamicUser = true;
