@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, Text, TextInput, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTask, useTaskState, useTaskSessions, useAllMachines, useAllSessions } from '@/sync/storage';
+import { storage, useTask, useTaskState, useTaskSessions, useAllMachines, useAllSessions, useTaskArtifacts } from '@/sync/storage';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
@@ -16,6 +16,7 @@ import { Modal } from '@/modal';
 import { getSessionName } from '@/utils/sessionUtils';
 import type { TaskState } from '@/sync/taskTypes';
 import type { Machine, Session } from '@/sync/storageTypes';
+import type { DecryptedArtifact } from '@/sync/artifactTypes';
 
 function stateLabel(state: TaskState): string {
     switch (state) {
@@ -80,16 +81,28 @@ function machineName(machine: Machine): string {
  */
 const AddSessionModal = React.memo(function AddSessionModal({
     agents,
+    taskArtifacts,
     onCreateSession,
     onClose,
 }: {
     agents: { id: string; name: string; description: string; promptTemplate: string }[];
-    onCreateSession: (agentKey: string | null, userMessage: string) => void;
+    taskArtifacts: DecryptedArtifact[];
+    onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[]) => void;
     onClose: () => void;
 }) {
     const { theme } = useUnistyles();
     const [selectedAgentKey, setSelectedAgentKey] = React.useState<string | null>(null);
     const [userMessage, setUserMessage] = React.useState('');
+    const [selectedArtifactIds, setSelectedArtifactIds] = React.useState<Set<string>>(new Set());
+
+    const toggleArtifact = React.useCallback((artifactId: string) => {
+        setSelectedArtifactIds(prev => {
+            const next = new Set(prev);
+            if (next.has(artifactId)) next.delete(artifactId);
+            else next.add(artifactId);
+            return next;
+        });
+    }, []);
 
     return (
         <View style={pickerStyles.container}>
@@ -141,6 +154,33 @@ const AddSessionModal = React.memo(function AddSessionModal({
                         </Pressable>
                     );
                 })}
+                {taskArtifacts.length > 0 && (
+                    <>
+                        <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                {t('tasks.includeArtifacts')}
+                            </Text>
+                        </View>
+                        {taskArtifacts.map(artifact => {
+                            const isChecked = selectedArtifactIds.has(artifact.id);
+                            return (
+                                <Pressable
+                                    key={artifact.id}
+                                    onPress={() => toggleArtifact(artifact.id)}
+                                    style={({ pressed }) => [
+                                        pickerStyles.row,
+                                        { backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent' },
+                                    ]}
+                                >
+                                    <Ionicons name={isChecked ? 'checkbox' : 'square-outline'} size={20} color={isChecked ? '#007AFF' : theme.colors.textSecondary} />
+                                    <Text style={[pickerStyles.rowText, { color: theme.colors.text }]} numberOfLines={1}>
+                                        {artifact.title || artifact.id.slice(0, 8)}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </>
+                )}
             </ScrollView>
             <View style={{ borderTopWidth: 0.5, borderTopColor: theme.colors.divider, paddingHorizontal: 16, paddingVertical: 10 }}>
                 <TextInput
@@ -169,7 +209,7 @@ const AddSessionModal = React.memo(function AddSessionModal({
                     </Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim()); onClose(); }}
+                    onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim(), [...selectedArtifactIds]); onClose(); }}
                     style={({ pressed }) => [
                         { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
                     ]}
@@ -320,6 +360,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     const task = useTask(id!);
     const state = useTaskState(id!);
     const linkedSessions = useTaskSessions(id!);
+    const taskArtifacts = useTaskArtifacts(id!);
     const machines = useAllMachines();
     const allSessions = useAllSessions();
     const { agents } = useAgentDefinitions();
@@ -419,8 +460,8 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         }
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
-    // Spawn a session with a given agent
-    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string) => {
+    // Spawn a session with a given agent, optionally including artifact content
+    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string, selectedArtifactIds?: string[]) => {
         if (!task) return;
 
         if (!selectedMachineId) {
@@ -453,6 +494,20 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             taskMessage += `\n\n---\n\n${userMessage}`;
         }
 
+        // Reference selected artifacts so the agent can access them via MCP tools
+        if (selectedArtifactIds && selectedArtifactIds.length > 0) {
+            const artifactRefs: string[] = [];
+            for (const artifactId of selectedArtifactIds) {
+                const artifact = storage.getState().artifacts[artifactId];
+                if (artifact) {
+                    artifactRefs.push(`- "${artifact.title || 'Untitled'}" (id: ${artifactId})`);
+                }
+            }
+            if (artifactRefs.length > 0) {
+                taskMessage += `\n\nThe following artifacts are available for this task (use read_artifact to access them):\n${artifactRefs.join('\n')}`;
+            }
+        }
+
         const result = await machineSpawnNewSession({
             machineId: selectedMachineId,
             directory: selectedDirectory,
@@ -481,14 +536,15 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
             component: AddSessionModal,
             props: {
                 agents,
-                onCreateSession: (agentKey: string | null, userMessage: string) => {
-                    doCreateSession(agentKey, userMessage || undefined).catch(e => {
+                taskArtifacts,
+                onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[]) => {
+                    doCreateSession(agentKey, userMessage || undefined, selectedArtifactIds).catch(e => {
                         Modal.alert(t('common.error'), e instanceof Error ? e.message : t('tasks.runFailed'));
                     });
                 },
             },
         });
-    }, [agents, doCreateSession]);
+    }, [agents, taskArtifacts, doCreateSession]);
 
     // Mark task as completed — archive active sessions first
     const handleComplete = React.useCallback(() => {
@@ -642,6 +698,25 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
                         title={t('tasks.addSession')}
                         titleStyle={{ color: '#007AFF', textAlign: 'center' }}
                         onPress={handleAddSession}
+                    />
+                )}
+            </ItemGroup>
+
+            {/* Artifacts linked to this task */}
+            <ItemGroup title={t('tasks.artifacts')}>
+                {taskArtifacts.map(artifact => (
+                    <Item
+                        key={artifact.id}
+                        title={artifact.title || artifact.id.slice(0, 8)}
+                        icon={<Ionicons name="document-text-outline" size={20} color={theme.colors.textSecondary} />}
+                        onPress={() => router.push(`/artifacts/${artifact.id}`)}
+                    />
+                ))}
+                {!isTerminal && (
+                    <Item
+                        title={t('tasks.addArtifact')}
+                        titleStyle={{ color: '#007AFF', textAlign: 'center' }}
+                        onPress={() => router.push({ pathname: '/artifacts/new', params: { taskId: id! } })}
                     />
                 )}
             </ItemGroup>

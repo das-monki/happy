@@ -116,6 +116,9 @@ export const en: TranslationStructure = {
     archiveConfirmTitle: "Archive Task",
     archiveConfirmMessage: "This task will be moved to the archive.",
     archivedGroup: "Archived",
+    artifacts: "Artifacts",
+    addArtifact: "Add Artifact",
+    includeArtifacts: "Include Artifacts",
   },
 
   common: {

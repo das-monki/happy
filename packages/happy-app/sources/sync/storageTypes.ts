@@ -75,7 +75,7 @@ export const AgentStateSchema = z.object({
         result: z.any().nullish(),
         error: z.string().nullish(),
         completedAt: z.number().nullish()
-    })).nullish()
+    })).nullish(),
 });
 
 export type AgentState = z.infer<typeof AgentStateSchema>;

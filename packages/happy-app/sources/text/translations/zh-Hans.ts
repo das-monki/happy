@@ -101,6 +101,9 @@ export const zhHans: TranslationStructure = {
     archiveConfirmTitle: "归档任务",
     archiveConfirmMessage: "此任务将被移至归档。",
     archivedGroup: "已归档",
+    artifacts: "工件",
+    addArtifact: "添加工件",
+    includeArtifacts: "包含工件",
   },
 
   common: {

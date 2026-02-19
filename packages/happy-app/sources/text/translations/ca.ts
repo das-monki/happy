@@ -99,6 +99,9 @@ export const ca: TranslationStructure = {
     archiveConfirmTitle: "Arxivar tasca",
     archiveConfirmMessage: "Aquesta tasca es mourà a l'arxiu.",
     archivedGroup: "Arxivades",
+    artifacts: "Artefactes",
+    addArtifact: "Afegir artefacte",
+    includeArtifacts: "Incloure artefactes",
   },
 
   common: {

@@ -1268,6 +1268,15 @@ export function useArtifactsCount(): number {
     }));
 }
 
+export function useTaskArtifacts(taskId: string): DecryptedArtifact[] {
+    return storage(useShallow((state) => {
+        if (!state.isDataReady) return [];
+        return Object.values(state.artifacts)
+            .filter(a => a.taskId === taskId)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+    }));
+}
+
 // Task hooks
 
 export function useTasks(): DecryptedTask[] {

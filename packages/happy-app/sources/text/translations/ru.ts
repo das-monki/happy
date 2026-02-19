@@ -112,6 +112,9 @@ export const ru: TranslationStructure = {
     archiveConfirmTitle: "Архивировать задачу",
     archiveConfirmMessage: "Задача будет перемещена в архив.",
     archivedGroup: "Архив",
+    artifacts: "Артефакты",
+    addArtifact: "Добавить артефакт",
+    includeArtifacts: "Включить артефакты",
   },
 
   common: {

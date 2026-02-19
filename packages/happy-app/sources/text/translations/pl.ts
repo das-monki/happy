@@ -112,6 +112,9 @@ export const pl: TranslationStructure = {
     archiveConfirmTitle: "Archiwizuj zadanie",
     archiveConfirmMessage: "Zadanie zostanie przeniesione do archiwum.",
     archivedGroup: "Zarchiwizowane",
+    artifacts: "Artefakty",
+    addArtifact: "Dodaj artefakt",
+    includeArtifacts: "Dołącz artefakty",
   },
 
   common: {

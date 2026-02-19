@@ -99,6 +99,9 @@ export const es: TranslationStructure = {
     archiveConfirmTitle: "Archivar tarea",
     archiveConfirmMessage: "Esta tarea se moverá al archivo.",
     archivedGroup: "Archivadas",
+    artifacts: "Artefactos",
+    addArtifact: "Agregar artefacto",
+    includeArtifacts: "Incluir artefactos",
   },
 
   common: {

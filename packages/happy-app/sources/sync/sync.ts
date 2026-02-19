@@ -783,6 +783,10 @@ class Sync {
         return this.sessionsSync.invalidateAndAwait();
     }
 
+    public refreshArtifacts = async () => {
+        return this.artifactsSync.invalidateAndAwait();
+    }
+
     public getCredentials() {
         return this.credentials;
     }
@@ -825,6 +829,8 @@ class Sync {
                         sessions: header?.sessions,  // Include sessions from header
                         draft: header?.draft,        // Include draft flag from header
                         body: undefined, // Body not loaded in list
+                        taskId: artifact.taskId ?? null,
+                        sourceSessionId: artifact.sourceSessionId ?? null,
                         headerVersion: artifact.headerVersion,
                         bodyVersion: artifact.bodyVersion,
                         seq: artifact.seq,
@@ -887,6 +893,8 @@ class Sync {
                 sessions: header?.sessions,  // Include sessions from header
                 draft: header?.draft,        // Include draft flag from header
                 body: body?.body || null,
+                taskId: artifact.taskId ?? null,
+                sourceSessionId: artifact.sourceSessionId ?? null,
                 headerVersion: artifact.headerVersion,
                 bodyVersion: artifact.bodyVersion,
                 seq: artifact.seq,
@@ -901,10 +909,12 @@ class Sync {
     }
 
     public async createArtifact(
-        title: string | null, 
+        title: string | null,
         body: string | null,
         sessions?: string[],
-        draft?: boolean
+        draft?: boolean,
+        taskId?: string | null,
+        sourceSessionId?: string | null,
     ): Promise<string> {
         if (!this.credentials) {
             throw new Error('Not authenticated');
@@ -936,6 +946,8 @@ class Sync {
                 header: encryptedHeader,
                 body: encryptedBody,
                 dataEncryptionKey: encodeBase64(encryptedKey, 'base64'),
+                taskId: taskId ?? undefined,
+                sourceSessionId: sourceSessionId ?? undefined,
             };
             
             // Send to server
@@ -948,6 +960,8 @@ class Sync {
                 sessions,
                 draft,
                 body,
+                taskId: artifact.taskId ?? taskId ?? null,
+                sourceSessionId: artifact.sourceSessionId ?? sourceSessionId ?? null,
                 headerVersion: artifact.headerVersion,
                 bodyVersion: artifact.bodyVersion,
                 seq: artifact.seq,

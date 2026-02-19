@@ -24,6 +24,7 @@ import { AssistantButton } from './AssistantButton';
 import { AssistantOverlay } from './AssistantOverlay';
 import { useAssistantSession } from '@/hooks/useAssistantSession';
 import { useAssistantToolHandler } from '@/hooks/useAssistantToolHandler';
+import { useSessionArtifactToolHandler } from '@/hooks/useSessionArtifactToolHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface MainViewProps {
@@ -288,6 +289,7 @@ export const MainView = React.memo(({ variant }: MainViewProps) => {
     const [assistantVisible, setAssistantVisible] = React.useState(false);
     const assistant = useAssistantSession();
     useAssistantToolHandler(assistant.sessionId);
+    useSessionArtifactToolHandler(assistant.sessionId);
     const safeArea = useSafeAreaInsets();
 
     // Compute unique directories from all tasks

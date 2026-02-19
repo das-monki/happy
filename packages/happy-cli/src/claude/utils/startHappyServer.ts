@@ -1,7 +1,11 @@
 /**
  * Happy MCP server
  * Provides Happy CLI specific tools including chat session title management
- * and task artifact management (create, update, list, read)
+ * and task artifact management (create, update, list, read).
+ *
+ * All artifact tools (create, read, list, update) are proxied through the app
+ * via agentState.toolRequests — the app has the encryption keys and can add
+ * new artifacts to its local store immediately.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -13,8 +17,8 @@ import { logger } from "@/ui/logger";
 import { ApiSessionClient } from "@/api/apiSession";
 import { ApiClient } from "@/api/api";
 import { randomUUID } from "node:crypto";
-import { encodeBase64, encrypt, getRandomBytes, libsodiumEncryptForPublicKey } from "@/api/encryption";
 import { registerAssistantTools } from "./assistantTools";
+import { AgentState } from "@/api/types";
 
 interface HappyServerOptions {
     client: ApiSessionClient;
@@ -23,6 +27,21 @@ interface HappyServerOptions {
     sessionId?: string;
     enableAssistantTools?: boolean;
 }
+
+interface PendingArtifactToolCall {
+    resolve: (result: string) => void;
+    reject: (error: Error) => void;
+    tool: string;
+}
+
+interface ArtifactToolResultPayload {
+    requestId: string;
+    tool: string;
+    result?: string;
+    error?: string;
+}
+
+const PROGRESS_INTERVAL_MS = 15_000;
 
 export async function startHappyServer(clientOrOpts: ApiSessionClient | HappyServerOptions) {
     // Support both old signature (just client) and new options object
@@ -48,6 +67,121 @@ export async function startHappyServer(clientOrOpts: ApiSessionClient | HappySer
             return { success: false, error: String(error) };
         }
     };
+
+    //
+    // Artifact tool proxy: read/list/update go through the app (which has decryption keys)
+    //
+
+    const pendingArtifactToolCalls = new Map<string, PendingArtifactToolCall>();
+
+    async function callArtifactToolViaApp(
+        tool: string,
+        args: Record<string, unknown>,
+        extra: { sendNotification: (notification: any) => Promise<void>; _meta?: { progressToken?: string | number } },
+    ): Promise<string> {
+        const requestId = randomUUID();
+        logger.debug(`[happyMCP] callArtifactToolViaApp tool=${tool} requestId=${requestId}`);
+
+        const promise = new Promise<string>((resolve, reject) => {
+            pendingArtifactToolCalls.set(requestId, { resolve, reject, tool });
+        });
+
+        // Write request into agentState so the app picks it up
+        client.updateAgentState((state: AgentState) => ({
+            ...state,
+            toolRequests: {
+                ...state.toolRequests,
+                [requestId]: {
+                    tool,
+                    arguments: args,
+                    createdAt: Date.now(),
+                },
+            },
+        }));
+
+        // Keep-alive: send MCP progress notifications every 15 s
+        let progressCount = 0;
+        const progressToken = extra._meta?.progressToken;
+        const interval = setInterval(async () => {
+            progressCount++;
+            try {
+                await extra.sendNotification({
+                    method: "notifications/progress" as const,
+                    params: {
+                        progressToken: progressToken ?? requestId,
+                        progress: progressCount,
+                        message: `Waiting for app to execute ${tool}…`,
+                    },
+                });
+            } catch {
+                // Notification failures are non-fatal
+            }
+        }, PROGRESS_INTERVAL_MS);
+
+        try {
+            return await promise;
+        } finally {
+            clearInterval(interval);
+        }
+    }
+
+    // RPC handler: receives artifact tool results from the app
+    client.rpcHandlerManager.registerHandler<ArtifactToolResultPayload, void>(
+        'artifactToolResult',
+        async (payload) => {
+            const pending = pendingArtifactToolCalls.get(payload.requestId);
+            if (!pending) {
+                logger.debug(`[happyMCP] Artifact tool result for unknown requestId=${payload.requestId}`);
+                return;
+            }
+
+            pendingArtifactToolCalls.delete(payload.requestId);
+
+            // Move from toolRequests → completedToolRequests in agentState
+            client.updateAgentState((state: AgentState) => {
+                const { [payload.requestId]: _, ...remainingRequests } = state.toolRequests || {};
+                return {
+                    ...state,
+                    toolRequests: remainingRequests,
+                    completedToolRequests: {
+                        ...state.completedToolRequests,
+                        [payload.requestId]: {
+                            tool: pending.tool,
+                            result: payload.result ?? null,
+                            error: payload.error,
+                            completedAt: Date.now(),
+                        },
+                    },
+                };
+            });
+
+            // Prune completed tool requests older than 5 minutes
+            const PRUNE_AGE_MS = 5 * 60 * 1000;
+            const now = Date.now();
+            client.updateAgentState((pruneState: AgentState) => {
+                const completed = pruneState.completedToolRequests;
+                if (!completed) return pruneState;
+                let changed = false;
+                const pruned: typeof completed = {};
+                for (const [id, entry] of Object.entries(completed)) {
+                    if (entry.completedAt && now - entry.completedAt > PRUNE_AGE_MS) {
+                        changed = true;
+                    } else {
+                        pruned[id] = entry;
+                    }
+                }
+                return changed ? { ...pruneState, completedToolRequests: pruned } : pruneState;
+            });
+
+            if (payload.error) {
+                pending.reject(new Error(payload.error));
+            } else {
+                pending.resolve(payload.result ?? '');
+            }
+
+            logger.debug(`[happyMCP] Artifact tool result received tool=${pending.tool} requestId=${payload.requestId} error=${!!payload.error}`);
+        },
+    );
 
     //
     // Create the MCP server
@@ -83,6 +217,7 @@ export async function startHappyServer(clientOrOpts: ApiSessionClient | HappySer
 
     // Register artifact tools only when api is available
     if (api) {
+        // create_artifact: proxied through app so it lands in local store immediately
         mcp.registerTool('create_artifact', {
             description: 'Save a work product (code, document, plan, etc.) as an artifact linked to the current task. The artifact is stored encrypted and visible in the mobile app.',
             title: 'Create Artifact',
@@ -91,50 +226,24 @@ export async function startHappyServer(clientOrOpts: ApiSessionClient | HappySer
                 body: z.string().describe('Content of the artifact (code, markdown, etc.)'),
                 kind: z.string().optional().describe('Type: "artifact" (default), "task-input", or "task-output"'),
             },
-        }, async (args) => {
+        }, async (args, extra) => {
             try {
-                const artifactId = randomUUID();
-                // Store header/body as plain JSON strings (unencrypted for MCP-created artifacts)
-                const headerJson = JSON.stringify({ title: args.title });
-                const bodyJson = JSON.stringify({ body: args.body });
-
-                // Generate a simple DEK and encrypt for storage
-                const dek = getRandomBytes(32);
-                const headerEncrypted = encodeBase64(encrypt(dek, 'dataKey', { title: args.title }));
-                const bodyEncrypted = encodeBase64(encrypt(dek, 'dataKey', { body: args.body }));
-
-                let encryptedDek: Uint8Array;
-                if (api.encryption_.type === 'dataKey') {
-                    const sealed = libsodiumEncryptForPublicKey(dek, api.encryption_.publicKey);
-                    encryptedDek = new Uint8Array(sealed.length + 1);
-                    encryptedDek.set([0], 0);
-                    encryptedDek.set(sealed, 1);
-                } else {
-                    encryptedDek = dek;
-                }
-
-                const result = await api.postArtifact({
-                    id: artifactId,
-                    header: headerEncrypted,
-                    body: bodyEncrypted,
-                    dataEncryptionKey: encodeBase64(encryptedDek),
-                    kind: args.kind || 'task-output',
-                    taskId: taskId || undefined,
+                const result = await callArtifactToolViaApp('create_artifact', {
+                    title: args.title,
+                    body: args.body,
+                    taskId: taskId || null,
                     sourceSessionId: sessionId || client.sessionId,
-                });
-
-                return {
-                    content: [{ type: 'text', text: `Artifact created: ${artifactId} (title: "${args.title}")` }],
-                    isError: false,
-                };
+                }, extra);
+                return { content: [{ type: 'text', text: result }], isError: false };
             } catch (error) {
                 return {
-                    content: [{ type: 'text', text: `Failed to create artifact: ${error}` }],
+                    content: [{ type: 'text', text: `Failed to create artifact: ${error instanceof Error ? error.message : error}` }],
                     isError: true,
                 };
             }
         });
 
+        // update_artifact: proxied through app (needs decryption of existing DEK)
         mcp.registerTool('update_artifact', {
             description: 'Update an existing artifact. The previous version is automatically saved as a snapshot.',
             title: 'Update Artifact',
@@ -143,99 +252,52 @@ export async function startHappyServer(clientOrOpts: ApiSessionClient | HappySer
                 title: z.string().optional().describe('New title (optional)'),
                 body: z.string().optional().describe('New body content (optional)'),
             },
-        }, async (args) => {
+        }, async (args, extra) => {
             try {
-                // Fetch current artifact to get versions and DEK
-                const current = await api.getArtifact(args.artifactId);
-
-                const updateData: any = {};
-                if (args.title !== undefined) {
-                    // Re-encrypt header with current DEK
-                    // For simplicity, pass the updated encrypted header
-                    const dek = getRandomBytes(32); // Would need real DEK - simplified
-                    updateData.header = encodeBase64(encrypt(dek, 'dataKey', { title: args.title }));
-                    updateData.expectedHeaderVersion = current.headerVersion;
-                }
-                if (args.body !== undefined) {
-                    const dek = getRandomBytes(32);
-                    updateData.body = encodeBase64(encrypt(dek, 'dataKey', { body: args.body }));
-                    updateData.expectedBodyVersion = current.bodyVersion;
-                }
-
-                const result = await api.updateArtifact(args.artifactId, updateData);
-
-                if (result.success) {
-                    return {
-                        content: [{ type: 'text', text: `Artifact ${args.artifactId} updated successfully` }],
-                        isError: false,
-                    };
-                } else {
-                    return {
-                        content: [{ type: 'text', text: `Version mismatch updating artifact ${args.artifactId}` }],
-                        isError: true,
-                    };
-                }
+                const result = await callArtifactToolViaApp('update_artifact', args, extra);
+                return { content: [{ type: 'text', text: result }], isError: false };
             } catch (error) {
                 return {
-                    content: [{ type: 'text', text: `Failed to update artifact: ${error}` }],
+                    content: [{ type: 'text', text: `Failed to update artifact: ${error instanceof Error ? error.message : error}` }],
                     isError: true,
                 };
             }
         });
 
+        // list_task_artifacts: proxied through app (needs decryption of headers)
         mcp.registerTool('list_task_artifacts', {
             description: 'List artifacts associated with the current task (or a specified task)',
             title: 'List Task Artifacts',
             inputSchema: {
                 taskId: z.string().optional().describe('Task ID to list artifacts for (defaults to current task)'),
             },
-        }, async (args) => {
+        }, async (args, extra) => {
             try {
                 const targetTaskId = args.taskId || taskId;
-                const artifacts = await api.getArtifacts(targetTaskId || undefined);
-
-                if (artifacts.length === 0) {
-                    return {
-                        content: [{ type: 'text', text: 'No artifacts found' }],
-                        isError: false,
-                    };
-                }
-
-                const lines = artifacts.map((a: any) =>
-                    `- ${a.id}: headerVersion=${a.headerVersion} kind=${a.kind || 'artifact'}`
-                );
-
-                return {
-                    content: [{ type: 'text', text: `Found ${artifacts.length} artifact(s):\n${lines.join('\n')}` }],
-                    isError: false,
-                };
+                const result = await callArtifactToolViaApp('list_task_artifacts', { taskId: targetTaskId }, extra);
+                return { content: [{ type: 'text', text: result }], isError: false };
             } catch (error) {
                 return {
-                    content: [{ type: 'text', text: `Failed to list artifacts: ${error}` }],
+                    content: [{ type: 'text', text: `Failed to list artifacts: ${error instanceof Error ? error.message : error}` }],
                     isError: true,
                 };
             }
         });
 
+        // read_artifact: proxied through app (needs decryption)
         mcp.registerTool('read_artifact', {
             description: 'Read the full content of an artifact by its ID',
             title: 'Read Artifact',
             inputSchema: {
                 artifactId: z.string().describe('ID of the artifact to read'),
             },
-        }, async (args) => {
+        }, async (args, extra) => {
             try {
-                const artifact = await api.getArtifact(args.artifactId);
-                return {
-                    content: [{
-                        type: 'text',
-                        text: `Artifact ${args.artifactId}:\nHeader: ${artifact.header}\nBody: ${artifact.body}\nKind: ${artifact.kind || 'artifact'}\nVersions: header=${artifact.headerVersion} body=${artifact.bodyVersion}`
-                    }],
-                    isError: false,
-                };
+                const result = await callArtifactToolViaApp('read_artifact', args, extra);
+                return { content: [{ type: 'text', text: result }], isError: false };
             } catch (error) {
                 return {
-                    content: [{ type: 'text', text: `Failed to read artifact: ${error}` }],
+                    content: [{ type: 'text', text: `Failed to read artifact: ${error instanceof Error ? error.message : error}` }],
                     isError: true,
                 };
             }

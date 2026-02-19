@@ -8,6 +8,8 @@ export interface Artifact {
     body?: string;  // Base64 encoded encrypted JSON { "body": string | null } - only in full fetch
     bodyVersion?: number;  // Only in full fetch
     dataEncryptionKey: string;  // Base64 encoded encryption key (encrypted with user key)
+    taskId?: string | null;
+    sourceSessionId?: string | null;
     seq: number;
     createdAt: number;
     updatedAt: number;
@@ -38,6 +40,8 @@ export interface DecryptedArtifact {
     sessions?: string[];  // Optional array of session IDs linked to this artifact
     draft?: boolean;      // Optional draft flag - hides artifact from visible list when true
     body?: string | null;  // Only loaded when viewing full artifact
+    taskId?: string | null;
+    sourceSessionId?: string | null;
     headerVersion: number;
     bodyVersion?: number;
     seq: number;
@@ -54,6 +58,8 @@ export interface ArtifactCreateRequest {
     header: string;  // Base64 encoded encrypted header
     body: string;  // Base64 encoded encrypted body
     dataEncryptionKey: string;  // Base64 encoded encryption key (encrypted with user key)
+    taskId?: string | null;
+    sourceSessionId?: string | null;
 }
 
 /**

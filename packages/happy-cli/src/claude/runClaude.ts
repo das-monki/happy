@@ -203,6 +203,7 @@ export async function runClaude(credentials: Credentials, options: StartOptions 
         client: session,
         api,
         sessionId: response.id,
+        taskId: process.env.HAPPY_TASK_ID,
         enableAssistantTools: process.env.HAPPY_ASSISTANT_TOOLS === 'true',
     });
     logger.debug(`[START] Happy MCP server started at ${happyServer.url}`);

@@ -1,30 +1,128 @@
 import React from 'react';
-import { View, ScrollView, TextInput, Pressable, ActivityIndicator, Platform, KeyboardAvoidingView as RNKeyboardAvoidingView } from 'react-native';
+import { View, TextInput, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { Text } from '@/components/StyledText';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
-import { layout } from '@/components/layout';
 import { Modal } from '@/modal';
 import { sync } from '@/sync/sync';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 
-const stylesheet = StyleSheet.create((theme) => ({
+/**
+ * New artifact creation screen.
+ * Title input at top, markdown editor (with preview/edit toggle) below.
+ * Defaults to edit mode for new artifacts since there's no content to preview yet.
+ */
+export default function NewArtifactScreen() {
+    const { theme } = useUnistyles();
+    const router = useRouter();
+    const { taskId } = useLocalSearchParams<{ taskId?: string }>();
+
+    const [title, setTitle] = React.useState('');
+    const [body, setBody] = React.useState('');
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [titleFocused, setTitleFocused] = React.useState(false);
+
+    const handleSave = React.useCallback(async () => {
+        if (isSaving) return;
+
+        if (!title.trim() && !body.trim()) {
+            await Modal.alert(t('common.error'), t('artifacts.emptyFieldsError'));
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            const artifactId = await sync.createArtifact(
+                title.trim() || null,
+                body.trim() || null,
+                undefined, // sessions
+                undefined, // draft
+                taskId || null,
+            );
+
+            router.replace(`/artifacts/${artifactId}`);
+        } catch (err) {
+            console.error('Failed to create artifact:', err);
+            await Modal.alert(t('common.error'), t('artifacts.createError'));
+            setIsSaving(false);
+        }
+    }, [title, body, isSaving, router, taskId]);
+
+    const HeaderRight = React.useCallback(() => (
+        <Pressable
+            style={[styles.headerButton, isSaving && styles.headerButtonDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+        >
+            {isSaving ? (
+                <ActivityIndicator size="small" color={theme.colors.header.tint} />
+            ) : (
+                <Text style={styles.headerButtonText}>
+                    {t('common.save')}
+                </Text>
+            )}
+        </Pressable>
+    ), [handleSave, isSaving]);
+
+    return (
+        <>
+            <Stack.Screen
+                options={{
+                    headerShown: true,
+                    headerTitle: t('artifacts.new'),
+                    headerRight: HeaderRight,
+                }}
+            />
+            <View style={styles.container}>
+                {/* Title input */}
+                <View style={styles.titleSection}>
+                    <Text style={styles.label}>{t('artifacts.titleLabel')}</Text>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            titleFocused && styles.inputFocused,
+                            Platform.OS === 'web' && {
+                                outlineStyle: 'none',
+                                outline: 'none',
+                                outlineWidth: 0,
+                                outlineColor: 'transparent',
+                            } as any,
+                        ]}
+                        value={title}
+                        onChangeText={setTitle}
+                        placeholder={t('artifacts.titlePlaceholder')}
+                        placeholderTextColor={theme.colors.input.placeholder}
+                        onFocus={() => setTitleFocused(true)}
+                        onBlur={() => setTitleFocused(false)}
+                        editable={!isSaving}
+                        returnKeyType="next"
+                        autoCapitalize="sentences"
+                    />
+                </View>
+
+                {/* Markdown body editor */}
+                <MarkdownEditor
+                    value={body}
+                    onChangeText={setBody}
+                    placeholder={t('artifacts.bodyPlaceholder')}
+                    initialMode="edit"
+                />
+            </View>
+        </>
+    );
+}
+
+const styles = StyleSheet.create((theme) => ({
     container: {
         flex: 1,
         backgroundColor: theme.colors.groupped.background,
     },
-    scrollView: {
-        flex: 1,
-    },
-    contentContainer: {
-        padding: 16,
-        paddingBottom: 100,
-    },
-    inputGroup: {
-        marginBottom: 24,
+    titleSection: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
     },
     label: {
         fontSize: 13,
@@ -47,12 +145,6 @@ const stylesheet = StyleSheet.create((theme) => ({
     inputFocused: {
         borderColor: theme.colors.button.primary.background,
     },
-    textArea: {
-        minHeight: 200,
-        textAlignVertical: 'top',
-        paddingTop: 14,
-        lineHeight: 22,
-    },
     headerButton: {
         paddingHorizontal: 16,
         paddingVertical: 8,
@@ -66,154 +158,3 @@ const stylesheet = StyleSheet.create((theme) => ({
         opacity: 0.5,
     },
 }));
-
-export default function NewArtifactScreen() {
-    const { theme } = useUnistyles();
-    const styles = stylesheet;
-    const router = useRouter();
-    const safeArea = useSafeAreaInsets();
-    
-    const [title, setTitle] = React.useState('');
-    const [body, setBody] = React.useState('');
-    const [isSaving, setIsSaving] = React.useState(false);
-    const [titleFocused, setTitleFocused] = React.useState(false);
-    const [bodyFocused, setBodyFocused] = React.useState(false);
-    
-    const handleSave = React.useCallback(async () => {
-        if (isSaving) return;
-        
-        // At least one field should have content
-        if (!title.trim() && !body.trim()) {
-            await Modal.alert(
-                t('common.error'),
-                t('artifacts.emptyFieldsError')
-            );
-            return;
-        }
-        
-        try {
-            setIsSaving(true);
-            
-            // Create the artifact
-            const artifactId = await sync.createArtifact(
-                title.trim() || null,
-                body.trim() || null
-            );
-            
-            // Navigate to the new artifact
-            router.replace(`/artifacts/${artifactId}`);
-        } catch (err) {
-            console.error('Failed to create artifact:', err);
-            await Modal.alert(
-                t('common.error'),
-                t('artifacts.createError')
-            );
-            setIsSaving(false);
-        }
-    }, [title, body, isSaving, router]);
-    
-    const HeaderRight = React.useCallback(() => (
-        <Pressable
-            style={[styles.headerButton, isSaving && styles.headerButtonDisabled]}
-            onPress={handleSave}
-            disabled={isSaving}
-        >
-            {isSaving ? (
-                <ActivityIndicator size="small" color={theme.colors.header.tint} />
-            ) : (
-                <Text style={styles.headerButtonText}>
-                    {t('common.save')}
-                </Text>
-            )}
-        </Pressable>
-    ), [handleSave, isSaving, styles]);
-    
-    const KeyboardWrapper = Platform.select({
-        ios: KeyboardAvoidingView,
-        default: React.Fragment,
-    });
-    
-    const keyboardProps = Platform.select({
-        ios: {
-            behavior: 'padding' as const,
-            keyboardVerticalOffset: 0,
-        },
-        default: {},
-    });
-    
-    return (
-        <>
-            <Stack.Screen 
-                options={{
-                    headerShown: true,
-                    headerTitle: t('artifacts.new'),
-                    headerRight: HeaderRight,
-                }}
-            />
-            <View style={styles.container}>
-                <KeyboardWrapper {...keyboardProps}>
-                    <ScrollView 
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.contentContainer,
-                            { maxWidth: layout.maxWidth, alignSelf: 'center', width: '100%' }
-                        ]}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>{t('artifacts.titleLabel')}</Text>
-                            <TextInput
-                                style={[
-                                    styles.input,
-                                    titleFocused && styles.inputFocused,
-                                    Platform.OS === 'web' && { 
-                                        outlineStyle: 'none',
-                                        outline: 'none',
-                                        outlineWidth: 0,
-                                        outlineColor: 'transparent'
-                                    } as any
-                                ]}
-                                value={title}
-                                onChangeText={setTitle}
-                                placeholder={t('artifacts.titlePlaceholder')}
-                                placeholderTextColor={theme.colors.input.placeholder}
-                                onFocus={() => setTitleFocused(true)}
-                                onBlur={() => setTitleFocused(false)}
-                                editable={!isSaving}
-                                returnKeyType="next"
-                                autoCapitalize="sentences"
-                            />
-                        </View>
-                        
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>{t('artifacts.bodyLabel')}</Text>
-                            <TextInput
-                                style={[
-                                    styles.input,
-                                    styles.textArea,
-                                    bodyFocused && styles.inputFocused,
-                                    Platform.OS === 'web' && { 
-                                        outlineStyle: 'none',
-                                        outline: 'none',
-                                        outlineWidth: 0,
-                                        outlineColor: 'transparent'
-                                    } as any
-                                ]}
-                                value={body}
-                                onChangeText={setBody}
-                                placeholder={t('artifacts.bodyPlaceholder')}
-                                placeholderTextColor={theme.colors.input.placeholder}
-                                onFocus={() => setBodyFocused(true)}
-                                onBlur={() => setBodyFocused(false)}
-                                editable={!isSaving}
-                                multiline
-                                numberOfLines={10}
-                                autoCapitalize="sentences"
-                            />
-                        </View>
-                    </ScrollView>
-                </KeyboardWrapper>
-            </View>
-        </>
-    );
-}

@@ -101,6 +101,9 @@ export const zhHant: TranslationStructure = {
     archiveConfirmTitle: "封存任務",
     archiveConfirmMessage: "此任務將被移至封存。",
     archivedGroup: "已封存",
+    artifacts: "工件",
+    addArtifact: "新增工件",
+    includeArtifacts: "包含工件",
   },
 
   common: {

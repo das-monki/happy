@@ -102,6 +102,9 @@ export const ja: TranslationStructure = {
     archiveConfirmTitle: "タスクをアーカイブ",
     archiveConfirmMessage: "このタスクはアーカイブに移動されます。",
     archivedGroup: "アーカイブ済み",
+    artifacts: "アーティファクト",
+    addArtifact: "アーティファクトを追加",
+    includeArtifacts: "アーティファクトを含める",
   },
 
   common: {
