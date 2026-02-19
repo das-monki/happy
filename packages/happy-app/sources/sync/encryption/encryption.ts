@@ -181,6 +181,39 @@ export class Encryption {
         return result;
     }
 
+    /**
+     * Decrypt a sealed quota snapshot payload.
+     *
+     * Mode 0x01 (nacl_box_v1): strip byte, decrypt with contentKeyPair.privateKey
+     * Mode 0x00 (legacy_secretbox_v1): strip byte, decrypt with legacy secretbox
+     */
+    async decryptSealedQuotaPayload(ciphertextBase64: string): Promise<any | null> {
+        try {
+            const raw = decodeBase64(ciphertextBase64, 'base64');
+            if (raw.length < 2) return null;
+
+            const modeByte = raw[0];
+            const payload = raw.slice(1);
+
+            if (modeByte === 0x01) {
+                // NaCl box mode — decrypt with content keypair private key
+                const decrypted = decryptBox(payload, this.contentKeyPair.privateKey);
+                if (!decrypted) return null;
+                return JSON.parse(new TextDecoder().decode(decrypted));
+            }
+
+            if (modeByte === 0x00) {
+                // Legacy secretbox mode
+                const decrypted = await this.legacyEncryption.decrypt([payload]);
+                return decrypted[0] ?? null;
+            }
+
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
     generateId(): string {
         return randomUUID();
     }

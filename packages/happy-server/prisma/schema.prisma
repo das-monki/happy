@@ -45,8 +45,9 @@ model Account {
     UsageReport         UsageReport[]
     Machine             Machine[]
     UploadedFile        UploadedFile[]
-    ServiceAccountToken ServiceAccountToken[]
-    RelationshipsFrom   UserRelationship[]    @relation("RelationshipsFrom")
+    ServiceAccountToken          ServiceAccountToken[]
+    ServiceAccountQuotaSnapshot  ServiceAccountQuotaSnapshot[]
+    RelationshipsFrom            UserRelationship[]    @relation("RelationshipsFrom")
     RelationshipsTo     UserRelationship[]    @relation("RelationshipsTo")
     Artifact            Artifact[]
     Task                Task[]
@@ -251,6 +252,23 @@ model ServiceAccountToken {
     lastUsedAt DateTime?
     createdAt  DateTime  @default(now())
     updatedAt  DateTime  @updatedAt
+
+    @@unique([accountId, vendor])
+    @@index([accountId])
+}
+
+model ServiceAccountQuotaSnapshot {
+    id          String    @id @default(cuid())
+    accountId   String
+    account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+    vendor      String
+    snapshot    Bytes     // Encrypted quota snapshot ciphertext
+    status      String?   // ok | unavailable | estimated | error
+    fetchedAt   DateTime?
+    staleAfterMs Int      @default(0)
+    metadata    Json?     // Format, version, refreshRequestedAt, etc.
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 
     @@unique([accountId, vendor])
     @@index([accountId])

@@ -22,6 +22,11 @@ import { join } from 'path';
 import { projectPath } from '@/projectPath';
 import { getTmuxUtilities, isTmuxAvailable, parseTmuxSessionIdentifier, formatTmuxSessionIdentifier } from '@/utils/tmux';
 import { expandEnvironmentVariables } from '@/utils/expandEnvVars';
+import { QuotaCoordinator } from './quotas/QuotaCoordinator';
+import { startQuotaLoop } from './quotas/startQuotaLoop';
+import { createAnthropicQuotaFetcher } from './quotas/fetchers/anthropicQuotaFetcher';
+import { createOpenAiQuotaFetcher } from './quotas/fetchers/openAiQuotaFetcher';
+import { createGeminiQuotaFetcher } from './quotas/fetchers/geminiQuotaFetcher';
 
 // Prepare initial metadata
 export const initialMachineMetadata: MachineMetadata = {
@@ -702,6 +707,24 @@ export async function startDaemon(): Promise<void> {
     // Connect to server
     apiMachine.connect();
 
+    // Start quota loop
+    const quotaCoordinator = new QuotaCoordinator({
+      credentials,
+      fetchers: [
+        createAnthropicQuotaFetcher(),
+        createOpenAiQuotaFetcher(),
+        createGeminiQuotaFetcher(),
+      ],
+    });
+    const quotaLoop = startQuotaLoop({
+      tickMs: 60_000,
+      coordinator: quotaCoordinator,
+      onTickError: (error) => {
+        logger.debug('[DAEMON RUN] Quota tick error:', error);
+      },
+    });
+    logger.debug('[DAEMON RUN] Quota loop started');
+
     // Every 60 seconds:
     // 1. Prune stale sessions
     // 2. Check if daemon needs update
@@ -794,6 +817,10 @@ export async function startDaemon(): Promise<void> {
     // Setup signal handlers
     const cleanupAndShutdown = async (source: 'happy-app' | 'happy-cli' | 'os-signal' | 'exception', errorMessage?: string) => {
       logger.debug(`[DAEMON RUN] Starting proper cleanup (source: ${source}, errorMessage: ${errorMessage})...`);
+
+      // Stop quota loop
+      quotaLoop.stop();
+      logger.debug('[DAEMON RUN] Quota loop stopped');
 
       // Clear health check interval
       if (restartOnStaleVersionAndHeartbeat) {

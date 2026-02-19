@@ -28,6 +28,9 @@ import { useProfile } from '@/sync/storage';
 import { getDisplayName, getAvatarUrl, getBio } from '@/sync/profile';
 import { Avatar } from '@/components/Avatar';
 import { t } from '@/text';
+import { QuotaBadgesView } from '@/components/settings/quotas/QuotaBadgesView';
+import { useQuotaBadges } from '@/hooks/useQuotaBadges';
+import type { QuotaVendor } from '@slopus/happy-wire';
 
 export const SettingsView = React.memo(function SettingsView() {
     const { theme } = useUnistyles();
@@ -112,6 +115,14 @@ export const SettingsView = React.memo(function SettingsView() {
     const [connectingAnthropic, connectAnthropic] = useHappyAction(async () => {
         router.push('/settings/connect/claude');
     });
+
+    // Quota badges for connected services
+    const quotaVendors: QuotaVendor[] = React.useMemo(() => {
+        const v: QuotaVendor[] = [];
+        if (isAnthropicConnected) v.push('anthropic');
+        return v;
+    }, [isAnthropicConnected]);
+    const quotaBadges = useQuotaBadges(quotaVendors, {});
 
     // Anthropic disconnection
     const [disconnectingAnthropic, handleDisconnectAnthropic] = useHappyAction(async () => {
@@ -238,6 +249,14 @@ export const SettingsView = React.memo(function SettingsView() {
                     loading={connectingAnthropic || disconnectingAnthropic}
                     showChevron={false}
                 />
+                {isAnthropicConnected && (
+                    <Item
+                        title="Quotas"
+                        subtitle="View API usage limits"
+                        icon={<Ionicons name="analytics-outline" size={29} color="#007AFF" />}
+                        onPress={() => router.push({ pathname: '/settings/connect/quotas', params: { vendor: 'anthropic' } })}
+                    />
+                )}
                 <Item
                     title={t('settings.github')}
                     subtitle={isGitHubConnected
