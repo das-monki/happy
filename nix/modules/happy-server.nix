@@ -30,7 +30,6 @@ in
       description = ''
         Environment file with secrets in KEY=value format.
         Should contain at minimum HANDY_MASTER_SECRET for encryption.
-        May also contain S3_ACCESS_KEY, S3_SECRET_KEY, etc.
       '';
     };
 
@@ -180,11 +179,18 @@ in
       ++ lib.optional cfg.database.createLocally "postgresql.service"
       ++ lib.optional cfg.redis.createLocally "redis-happy.service"
       ++ lib.optional cfg.minio.createLocally "minio.service";
+      preStart = lib.optionalString (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) ''
+        # Convert MINIO_ROOT_USER/PASSWORD to S3_ACCESS_KEY/SECRET_KEY
+        source ${cfg.minio.rootCredentialsFile}
+        printf 'S3_ACCESS_KEY=%s\nS3_SECRET_KEY=%s\n' "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" > /run/happy-server/s3.env
+        chmod 600 /run/happy-server/s3.env
+      '';
       serviceConfig = {
         Type = "simple";
         ExecStart = "${cfg.package}/bin/happy-server";
         Restart = "on-failure";
         RestartSec = 5;
+        RuntimeDirectory = "happy-server";
 
         Environment = [
           "NODE_ENV=production"
@@ -200,7 +206,11 @@ in
           "S3_PUBLIC_URL=http://127.0.0.1:9000/${cfg.minio.bucket}"
         ];
 
-        EnvironmentFile = lib.optional (cfg.environmentFile != null) cfg.environmentFile;
+        EnvironmentFile =
+          lib.optional (cfg.environmentFile != null) cfg.environmentFile
+          ++ lib.optional (
+            cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null
+          ) "/run/happy-server/s3.env";
 
         # Hardening
         DynamicUser = true;
