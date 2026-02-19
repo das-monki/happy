@@ -48,13 +48,18 @@ const IdleSessionRow = React.memo(function IdleSessionRow({
     }, [session.id, isLoaded]);
 
     const lastLine = React.useMemo(() => {
-        // Messages are ordered most-recent-first; find the first agent-text
+        // Messages are ordered most-recent-first; find the last meaningful line
         for (let i = 0; i < messages.length; i++) {
             const msg = messages[i];
             if (msg.kind === 'agent-text') {
                 const stripped = msg.text.replace(/<options>[\s\S]*?<\/options>/g, '').trim();
-                const sentences = stripped.split(/(?<=[.!?])\s+/).filter(s => s.trim());
-                return sentences[sentences.length - 1]?.trim() || null;
+                if (!/\w/.test(stripped)) continue;
+                // Split into lines and find the last one with actual word content
+                const lines = stripped.split('\n');
+                for (let j = lines.length - 1; j >= 0; j--) {
+                    const line = lines[j].trim();
+                    if (/\w/.test(line)) return line;
+                }
             }
         }
         return null;
