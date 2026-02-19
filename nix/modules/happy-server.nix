@@ -179,18 +179,18 @@ in
       ++ lib.optional cfg.database.createLocally "postgresql.service"
       ++ lib.optional cfg.redis.createLocally "redis-happy.service"
       ++ lib.optional cfg.minio.createLocally "minio.service";
-      # Use a script wrapper so we can source MinIO credentials and convert
-      # them to S3_ACCESS_KEY/S3_SECRET_KEY before exec-ing the server.
-      # This avoids the systemd EnvironmentFile ordering issue where
-      # EnvironmentFile is evaluated before preStart/ExecStartPre.
+      # Use a script wrapper to source secrets via LoadCredential and convert
+      # MinIO credentials to S3_ACCESS_KEY/S3_SECRET_KEY before exec-ing.
+      # LoadCredential copies secret files into a private directory that the
+      # DynamicUser can read (agenix files are root-owned and unreadable).
       script = ''
         ${lib.optionalString (cfg.environmentFile != null) ''
           set -a
-          source ${cfg.environmentFile}
+          source "$CREDENTIALS_DIRECTORY/happy-env"
           set +a
         ''}
         ${lib.optionalString (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) ''
-          source ${cfg.minio.rootCredentialsFile}
+          source "$CREDENTIALS_DIRECTORY/minio-creds"
           export S3_ACCESS_KEY="$MINIO_ROOT_USER"
           export S3_SECRET_KEY="$MINIO_ROOT_PASSWORD"
         ''}
@@ -214,6 +214,12 @@ in
           "S3_BUCKET=${cfg.minio.bucket}"
           "S3_PUBLIC_URL=http://127.0.0.1:9000/${cfg.minio.bucket}"
         ];
+
+        # Use LoadCredential to make secret files readable by DynamicUser.
+        # systemd copies them to a private $CREDENTIALS_DIRECTORY.
+        LoadCredential =
+          lib.optional (cfg.environmentFile != null) "happy-env:${cfg.environmentFile}"
+          ++ lib.optional (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) "minio-creds:${cfg.minio.rootCredentialsFile}";
 
         # Hardening
         DynamicUser = true;
