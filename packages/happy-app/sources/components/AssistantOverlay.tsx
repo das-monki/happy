@@ -706,7 +706,7 @@ export const AssistantOverlay = React.memo(
                             { opacity: pressed ? 0.7 : 1 },
                           ]}
                         >
-                          <Ionicons name="close-circle" size={28} color={theme.colors.textSecondary} />
+                          <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
                         </Pressable>
                         <STTWaveform
                           level={stt.audioLevel}
