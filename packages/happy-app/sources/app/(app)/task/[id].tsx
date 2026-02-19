@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { View, Text, TextInput, ScrollView, Pressable } from 'react-native';
+import { View, Text, TextInput, ScrollView, Pressable, TouchableWithoutFeedback } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { storage, useTask, useTaskState, useTaskSessions, useAllMachines, useAllSessions, useTaskArtifacts } from '@/sync/storage';
+import { storage, useSetting, useTask, useTaskState, useTaskSessions, useAllMachines, useAllSessions, useTaskArtifacts } from '@/sync/storage';
 import { Item } from '@/components/Item';
 import { ItemGroup } from '@/components/ItemGroup';
 import { ItemList } from '@/components/ItemList';
@@ -9,12 +9,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
 import { sync } from '@/sync/sync';
+import { getAvailablePermissionModes, getAvailableModels, getDefaultPermissionModeKey, getDefaultModelKey, resolveCurrentOption } from '@/components/modelModeOptions';
+import type { PermissionMode, ModelMode } from '@/components/modelModeOptions';
 import { machineSpawnNewSession, sessionKill, sessionDelete } from '@/sync/ops';
 import { deleteArtifact } from '@/sync/apiArtifacts';
 import { useAgentDefinitions } from '@/hooks/useAgentDefinitions';
 import { useHappyAction } from '@/hooks/useHappyAction';
 import { Modal } from '@/modal';
 import { getSessionName } from '@/utils/sessionUtils';
+import { FloatingOverlay } from '@/components/FloatingOverlay';
 import type { TaskState } from '@/sync/taskTypes';
 import type { Machine, Session } from '@/sync/storageTypes';
 import type { DecryptedArtifact } from '@/sync/artifactTypes';
@@ -98,18 +101,35 @@ function machineName(machine: Machine): string {
 const AddSessionModal = React.memo(function AddSessionModal({
     agents,
     taskArtifacts,
+    initialPermissionModeKey,
+    initialModelModeKey,
     onCreateSession,
     onClose,
 }: {
     agents: { id: string; name: string; description: string; promptTemplate: string }[];
     taskArtifacts: DecryptedArtifact[];
-    onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[]) => void;
+    initialPermissionModeKey: string | null;
+    initialModelModeKey: string | null;
+    onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null) => void;
     onClose: () => void;
 }) {
     const { theme } = useUnistyles();
     const [selectedAgentKey, setSelectedAgentKey] = React.useState<string | null>(null);
     const [userMessage, setUserMessage] = React.useState('');
     const [selectedArtifactIds, setSelectedArtifactIds] = React.useState<Set<string>>(new Set());
+
+    // Permission mode & model mode options (always claude flavor for task sessions)
+    const availableModes = React.useMemo(() => getAvailablePermissionModes('claude', null, t), []);
+    const availableModels = React.useMemo(() => getAvailableModels('claude', null, t), []);
+
+    const [selectedPermissionMode, setSelectedPermissionMode] = React.useState<PermissionMode>(() =>
+        resolveCurrentOption(availableModes, [initialPermissionModeKey, getDefaultPermissionModeKey('claude')]) ?? availableModes[0]
+    );
+    const [selectedModelMode, setSelectedModelMode] = React.useState<ModelMode>(() =>
+        resolveCurrentOption(availableModels, [initialModelModeKey, getDefaultModelKey('claude')]) ?? availableModels[0]
+    );
+
+    const [showSettings, setShowSettings] = React.useState(false);
 
     const toggleArtifact = React.useCallback((artifactId: string) => {
         setSelectedArtifactIds(prev => {
@@ -197,6 +217,7 @@ const AddSessionModal = React.memo(function AddSessionModal({
                         })}
                     </>
                 )}
+
             </ScrollView>
             <View style={{ borderTopWidth: 0.5, borderTopColor: theme.colors.divider, paddingHorizontal: 16, paddingVertical: 10 }}>
                 <TextInput
@@ -213,27 +234,141 @@ const AddSessionModal = React.memo(function AddSessionModal({
                     }}
                 />
             </View>
-            <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
+            {/* Button row with settings gear */}
+            <View style={{ position: 'relative' }}>
+                {/* Settings overlay — slides up above buttons */}
+                {showSettings && (
+                    <>
+                        <TouchableWithoutFeedback onPress={() => setShowSettings(false)}>
+                            <View style={{ position: 'absolute', top: -1000, left: -1000, right: -1000, bottom: -1000, zIndex: 999 }} />
+                        </TouchableWithoutFeedback>
+                        <View style={{ position: 'absolute', bottom: '100%', left: 8, right: 8, marginBottom: 4, zIndex: 1000 }}>
+                            <FloatingOverlay maxHeight={300}>
+                                {/* Permission Mode */}
+                                <View style={{ paddingVertical: 8 }}>
+                                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.textSecondary, paddingHorizontal: 16, paddingBottom: 4 }}>
+                                        {t('agentInput.permissionMode.title')}
+                                    </Text>
+                                    {availableModes.map(mode => {
+                                        const isSelected = selectedPermissionMode.key === mode.key;
+                                        return (
+                                            <Pressable
+                                                key={mode.key}
+                                                onPress={() => setSelectedPermissionMode(mode)}
+                                                style={({ pressed }) => ({
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent',
+                                                })}
+                                            >
+                                                <View style={{
+                                                    width: 16, height: 16, borderRadius: 8,
+                                                    borderWidth: 2,
+                                                    borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
+                                                    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+                                                }}>
+                                                    {isSelected && (
+                                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.radio.dot }} />
+                                                    )}
+                                                </View>
+                                                <Text style={{ flex: 1, fontSize: 14, color: isSelected ? theme.colors.radio.active : theme.colors.text }} numberOfLines={1}>
+                                                    {mode.name}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                                <View style={{ height: 1, backgroundColor: theme.colors.divider, marginHorizontal: 16 }} />
+                                {/* Model */}
+                                <View style={{ paddingVertical: 8 }}>
+                                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.textSecondary, paddingHorizontal: 16, paddingBottom: 4 }}>
+                                        {t('agentInput.model.title')}
+                                    </Text>
+                                    {availableModels.map(model => {
+                                        const isSelected = selectedModelMode.key === model.key;
+                                        return (
+                                            <Pressable
+                                                key={model.key}
+                                                onPress={() => setSelectedModelMode(model)}
+                                                style={({ pressed }) => ({
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    backgroundColor: pressed ? theme.colors.surfaceRipple : 'transparent',
+                                                })}
+                                            >
+                                                <View style={{
+                                                    width: 16, height: 16, borderRadius: 8,
+                                                    borderWidth: 2,
+                                                    borderColor: isSelected ? theme.colors.radio.active : theme.colors.radio.inactive,
+                                                    alignItems: 'center', justifyContent: 'center', marginRight: 12,
+                                                }}>
+                                                    {isSelected && (
+                                                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.colors.radio.dot }} />
+                                                    )}
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <Text style={{ fontSize: 14, color: isSelected ? theme.colors.radio.active : theme.colors.text }} numberOfLines={1}>
+                                                        {model.name}
+                                                    </Text>
+                                                    {model.description ? (
+                                                        <Text style={{ fontSize: 11, color: theme.colors.textSecondary }} numberOfLines={1}>
+                                                            {model.description}
+                                                        </Text>
+                                                    ) : null}
+                                                </View>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            </FloatingOverlay>
+                        </View>
+                    </>
+                )}
+                {/* Gear row */}
                 <Pressable
-                    onPress={onClose}
-                    style={({ pressed }) => [
-                        { flex: 1, paddingVertical: 14, borderRightWidth: 0.5, borderRightColor: theme.colors.divider, opacity: pressed ? 0.7 : 1 },
-                    ]}
+                    onPress={() => setShowSettings(prev => !prev)}
+                    style={({ pressed }) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderTopWidth: 0.5,
+                        borderTopColor: theme.colors.divider,
+                        opacity: pressed ? 0.7 : 1,
+                    })}
                 >
-                    <Text style={{ fontSize: 17, textAlign: 'center', color: '#007AFF' }}>
-                        {t('common.cancel')}
+                    <Ionicons name="settings-outline" size={18} color={theme.colors.textSecondary} />
+                    <Text style={{ fontSize: 13, color: theme.colors.textSecondary, marginLeft: 6 }}>
+                        {selectedPermissionMode.name} · {selectedModelMode.name}
                     </Text>
                 </Pressable>
-                <Pressable
-                    onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim(), [...selectedArtifactIds]); onClose(); }}
-                    style={({ pressed }) => [
-                        { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
-                    ]}
-                >
-                    <Text style={{ fontSize: 17, fontWeight: '600', textAlign: 'center', color: '#007AFF' }}>
-                        {t('common.create')}
-                    </Text>
-                </Pressable>
+                {/* Cancel / Create row */}
+                <View style={{ flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: theme.colors.divider }}>
+                    <Pressable
+                        onPress={onClose}
+                        style={({ pressed }) => [
+                            { flex: 1, paddingVertical: 14, borderRightWidth: 0.5, borderRightColor: theme.colors.divider, opacity: pressed ? 0.7 : 1 },
+                        ]}
+                    >
+                        <Text style={{ fontSize: 17, textAlign: 'center', color: '#007AFF' }}>
+                            {t('common.cancel')}
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => { onCreateSession(selectedAgentKey, userMessage.trim(), [...selectedArtifactIds], selectedPermissionMode.key, selectedModelMode?.key ?? null); onClose(); }}
+                        style={({ pressed }) => [
+                            { flex: 1, paddingVertical: 14, opacity: pressed ? 0.7 : 1 },
+                        ]}
+                    >
+                        <Text style={{ fontSize: 17, fontWeight: '600', textAlign: 'center', color: '#007AFF' }}>
+                            {t('common.create')}
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     );
@@ -477,7 +612,7 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
     }, [pathParam]); // intentionally omit selectedDirectory to avoid loops
 
     // Spawn a session with a given agent, optionally including artifact content
-    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string, selectedArtifactIds?: string[]) => {
+    const doCreateSession = React.useCallback(async (agentKey: string | null, userMessage?: string, selectedArtifactIds?: string[], permissionModeKey?: string, modelModeKey?: string | null) => {
         if (!task) return;
 
         if (!selectedMachineId) {
@@ -536,6 +671,20 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         if ('sessionId' in result && result.sessionId) {
             await sync.refreshSessions();
 
+            // Apply permission mode and model mode
+            if (permissionModeKey) {
+                storage.getState().updateSessionPermissionMode(result.sessionId, permissionModeKey);
+            }
+            if (modelModeKey) {
+                storage.getState().updateSessionModelMode(result.sessionId, modelModeKey);
+            }
+
+            // Persist last-used values
+            sync.applySettings({
+                lastUsedPermissionMode: permissionModeKey ?? null,
+                lastUsedModelMode: modelModeKey ?? null,
+            });
+
             if (taskMessage.trim()) {
                 await sync.sendMessage(result.sessionId, taskMessage);
             }
@@ -547,20 +696,25 @@ const TaskDetailScreen = React.memo(function TaskDetailScreen() {
         }
     }, [task, selectedMachineId, selectedDirectory, agents, router, id]);
 
+    const lastUsedPermissionMode = useSetting('lastUsedPermissionMode');
+    const lastUsedModelMode = useSetting('lastUsedModelMode');
+
     const handleAddSession = React.useCallback(() => {
         Modal.show({
             component: AddSessionModal,
             props: {
                 agents,
                 taskArtifacts,
-                onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[]) => {
-                    doCreateSession(agentKey, userMessage || undefined, selectedArtifactIds).catch(e => {
+                initialPermissionModeKey: lastUsedPermissionMode,
+                initialModelModeKey: lastUsedModelMode,
+                onCreateSession: (agentKey: string | null, userMessage: string, selectedArtifactIds: string[], permissionModeKey: string, modelModeKey: string | null) => {
+                    doCreateSession(agentKey, userMessage || undefined, selectedArtifactIds, permissionModeKey, modelModeKey).catch(e => {
                         Modal.alert(t('common.error'), e instanceof Error ? e.message : t('tasks.runFailed'));
                     });
                 },
             },
         });
-    }, [agents, taskArtifacts, doCreateSession]);
+    }, [agents, taskArtifacts, lastUsedPermissionMode, lastUsedModelMode, doCreateSession]);
 
     // Mark task as completed — archive active sessions first
     const handleComplete = React.useCallback(() => {
