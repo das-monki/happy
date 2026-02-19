@@ -48,7 +48,7 @@
           src = filteredSrc;
 
           nativeBuildInputs = with pkgs; [
-            nodejs_20
+            nodejs_22
             yarn
             yarnConfigHook
             makeWrapper
@@ -111,17 +111,17 @@
             # Create wrapper scripts
             mkdir -p $out/bin
 
-            makeWrapper ${pkgs.nodejs_20}/bin/node $out/bin/happy \
+            makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/happy \
               --add-flags "--no-warnings" \
               --add-flags "--no-deprecation" \
               --add-flags "$out/lib/happy-coder/packages/happy-cli/dist/index.mjs" \
-              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_20 ]}
+              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_22 ]}
 
-            makeWrapper ${pkgs.nodejs_20}/bin/node $out/bin/happy-mcp \
+            makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/happy-mcp \
               --add-flags "--no-warnings" \
               --add-flags "--no-deprecation" \
               --add-flags "$out/lib/happy-coder/packages/happy-cli/dist/codex/happyMcpStdioBridge.mjs" \
-              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_20 ]}
+              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_22 ]}
 
             runHook postInstall
           '';
@@ -142,7 +142,7 @@
           src = filteredSrc;
 
           nativeBuildInputs = with pkgs; [
-            nodejs_20
+            nodejs_22
             yarn
             yarnConfigHook
             makeWrapper
@@ -220,7 +220,7 @@
             mkdir -p $out/bin
 
             # Main server binary: run via tsx (which is a dependency)
-            makeWrapper ${pkgs.nodejs_20}/bin/node $out/bin/happy-server \
+            makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/happy-server \
               --add-flags "$out/lib/happy-server/node_modules/.bin/tsx" \
               --add-flags "$out/lib/happy-server/packages/happy-server/sources/main.ts" \
               --set PRISMA_QUERY_ENGINE_LIBRARY "${pkgs.prisma-engines}/lib/libquery_engine.node" \
@@ -228,21 +228,21 @@
               --chdir "$out/lib/happy-server/packages/happy-server" \
               --prefix PATH : ${
                 lib.makeBinPath [
-                  pkgs.nodejs_20
+                  pkgs.nodejs_22
                   pkgs.ffmpeg
                   pkgs.python3
                 ]
               }
 
             # Migration binary
-            makeWrapper ${pkgs.nodejs_20}/bin/node $out/bin/happy-server-migrate \
+            makeWrapper ${pkgs.nodejs_22}/bin/node $out/bin/happy-server-migrate \
               --add-flags "$out/lib/happy-server/node_modules/.bin/prisma" \
               --add-flags "migrate" \
               --add-flags "deploy" \
               --set PRISMA_QUERY_ENGINE_LIBRARY "${pkgs.prisma-engines}/lib/libquery_engine.node" \
               --set PRISMA_SCHEMA_ENGINE_BINARY "${pkgs.prisma-engines}/bin/schema-engine" \
               --chdir "$out/lib/happy-server/packages/happy-server" \
-              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_20 ]}
+              --prefix PATH : ${lib.makeBinPath [ pkgs.nodejs_22 ]}
 
             runHook postInstall
           '';
