@@ -423,7 +423,12 @@ export const SettingsSchema = z.object({
   speechToTextModel: z
     .string()
     .describe(
-      "Whisper model to use for speech-to-text (e.g. tiny.en, base.en, small.en)",
+      "Whisper model to use for speech-to-text (e.g. tiny, base, small, medium)",
+    ),
+  speechToTextLanguage: z
+    .string()
+    .describe(
+      "Language for speech-to-text transcription (e.g. en, auto)",
     ),
   // Dismissed CLI warning banners (supports both per-machine and global dismissal)
   dismissedCLIWarnings: z
@@ -525,7 +530,8 @@ export const settingsDefaults: Settings = {
   favoriteMachines: [],
   // Speech-to-text defaults
   speechToTextEnabled: false,
-  speechToTextModel: "tiny.en",
+  speechToTextModel: "tiny",
+  speechToTextLanguage: "en",
   // Dismissed CLI warnings (empty by default)
   dismissedCLIWarnings: { perMachine: {}, global: {} },
   // Assistant overlay defaults

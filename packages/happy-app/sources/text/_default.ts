@@ -736,6 +736,44 @@ export const en = {
     noChanges: "No changes to display",
   },
 
+  settingsSTT: {
+    // Speech-to-text settings page
+    title: "Speech to Text",
+    description:
+      "Transcribe voice to text on-device using Whisper. Models are downloaded on first use.",
+    enabled: "On-device transcription enabled",
+    disabled: "Speech-to-text disabled",
+    language: "Language",
+    languageAuto: "Auto-detect",
+    languageEn: "English",
+    languageZh: "Chinese",
+    languageDe: "German",
+    languageEs: "Spanish",
+    languageRu: "Russian",
+    languageFr: "French",
+    languagePt: "Portuguese",
+    languageJa: "Japanese",
+    languageKo: "Korean",
+    languageIt: "Italian",
+    languagePl: "Polish",
+    model: "Model",
+    modelTiny: "Tiny",
+    modelTinySize: "75 MB",
+    modelBase: "Base",
+    modelBaseSize: "142 MB",
+    modelSmall: "Small",
+    modelSmallSize: "466 MB",
+    modelMedium: "Medium",
+    modelMediumSize: "1.5 GB",
+    modelReady: "Ready",
+    modelNotDownloaded: "Not downloaded",
+    modelDownloading: ({ progress }: { progress: number }) =>
+      `Downloading ${progress}%`,
+    recording: "Recording...",
+    transcribing: "Transcribing...",
+    cancel: "Cancel",
+  },
+
   settingsVoice: {
     // Voice settings screen
     languageTitle: "Language",

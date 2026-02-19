@@ -23,22 +23,28 @@ export interface WhisperModelDefinition {
 
 export const WHISPER_MODELS: WhisperModelDefinition[] = [
   {
-    id: "tiny.en",
-    label: t("settingsFeatures.speechToTextModelTinyEn"),
-    size: t("settingsFeatures.speechToTextModelTinyEnSize"),
-    fileName: "ggml-tiny.en.bin",
+    id: "tiny",
+    label: t("settingsSTT.modelTiny"),
+    size: t("settingsSTT.modelTinySize"),
+    fileName: "ggml-tiny.bin",
   },
   {
-    id: "base.en",
-    label: t("settingsFeatures.speechToTextModelBaseEn"),
-    size: t("settingsFeatures.speechToTextModelBaseEnSize"),
-    fileName: "ggml-base.en.bin",
+    id: "base",
+    label: t("settingsSTT.modelBase"),
+    size: t("settingsSTT.modelBaseSize"),
+    fileName: "ggml-base.bin",
   },
   {
-    id: "small.en",
-    label: t("settingsFeatures.speechToTextModelSmallEn"),
-    size: t("settingsFeatures.speechToTextModelSmallEnSize"),
-    fileName: "ggml-small.en.bin",
+    id: "small",
+    label: t("settingsSTT.modelSmall"),
+    size: t("settingsSTT.modelSmallSize"),
+    fileName: "ggml-small.bin",
+  },
+  {
+    id: "medium",
+    label: t("settingsSTT.modelMedium"),
+    size: t("settingsSTT.modelMediumSize"),
+    fileName: "ggml-medium.bin",
   },
 ];
 

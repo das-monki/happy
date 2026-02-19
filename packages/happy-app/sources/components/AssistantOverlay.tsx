@@ -35,6 +35,8 @@ import { Typography } from "@/constants/Typography";
 import { MessageView } from "./MessageView";
 import { StatusDot } from "./StatusDot";
 import { STTButton } from "./STTButton";
+import { STTWaveform } from "./STTWaveform";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { Modal } from "@/modal";
 import { t } from "@/text";
 import { storage } from "@/sync/storage";
@@ -135,6 +137,7 @@ export const AssistantOverlay = React.memo(
     const handleTranscription = React.useCallback((text: string) => {
       setInputText((prev) => (prev ? prev + " " + text : text));
     }, []);
+    const stt = useSpeechToText({ onTranscription: handleTranscription });
 
     const keyExtractor = React.useCallback((item: Message) => item.id, []);
     const renderItem = React.useCallback(
@@ -319,6 +322,25 @@ export const AssistantOverlay = React.memo(
                 {/* Row 2: Action buttons */}
                 <View style={styles.actionButtonsRow}>
                   <View style={styles.actionButtonsLeft}>
+                    {stt.state === "recording" || stt.state === "transcribing" ? (
+                      <>
+                        <Pressable
+                          onPress={stt.cancel}
+                          hitSlop={{ top: 5, bottom: 10, left: 5, right: 5 }}
+                          style={({ pressed }) => [
+                            styles.actionButton,
+                            { opacity: pressed ? 0.7 : 1 },
+                          ]}
+                        >
+                          <Ionicons name="close-circle" size={28} color={theme.colors.textSecondary} />
+                        </Pressable>
+                        <STTWaveform
+                          level={stt.audioLevel}
+                          isRecording={stt.state === "recording"}
+                        />
+                      </>
+                    ) : (
+                    <>
                     {/* Abort button */}
                     <Pressable
                       onPress={assistant.abort}
@@ -373,10 +395,16 @@ export const AssistantOverlay = React.memo(
                         />
                       )}
                     </Pressable>
+                    </>
+                    )}
                   </View>
 
                   {/* STT button */}
-                  <STTButton onTranscription={handleTranscription} />
+                  <STTButton
+                    state={stt.state}
+                    enabled={stt.enabled}
+                    onToggle={stt.toggle}
+                  />
 
                   {/* Send button */}
                   <Pressable

@@ -7,10 +7,6 @@ import { ItemList } from "@/components/ItemList";
 import { useSettingMutable, useLocalSettingMutable } from "@/sync/storage";
 import { Switch } from "@/components/Switch";
 import { t } from "@/text";
-import {
-  useWhisperModelManager,
-  WHISPER_MODELS,
-} from "@/hooks/useWhisperModelManager";
 
 export default function FeaturesSettingsScreen() {
   const router = useRouter();
@@ -27,12 +23,6 @@ export default function FeaturesSettingsScreen() {
   );
   const [useEnhancedSessionWizard, setUseEnhancedSessionWizard] =
     useSettingMutable("useEnhancedSessionWizard");
-  const [speechToTextEnabled, setSpeechToTextEnabled] = useSettingMutable(
-    "speechToTextEnabled",
-  );
-  const [speechToTextModel, setSpeechToTextModel] =
-    useSettingMutable("speechToTextModel");
-  const modelManager = useWhisperModelManager();
   const [assistantAutoApprove, setAssistantAutoApprove] = useSettingMutable(
     "assistantAutoApprove",
   );
@@ -95,59 +85,6 @@ export default function FeaturesSettingsScreen() {
           showChevron={false}
         />
       </ItemGroup>
-
-      {/* Speech to Text - iOS/Android only */}
-      {Platform.OS !== "web" && (
-        <ItemGroup
-          title={t("settingsFeatures.speechToText")}
-          footer={t("settingsFeatures.speechToTextDescription")}
-        >
-          <Item
-            title={t("settingsFeatures.speechToText")}
-            subtitle={
-              speechToTextEnabled
-                ? t("settingsFeatures.speechToTextEnabled")
-                : t("settingsFeatures.speechToTextDisabled")
-            }
-            icon={<Ionicons name="mic-outline" size={29} color="#007AFF" />}
-            rightElement={
-              <Switch
-                value={speechToTextEnabled}
-                onValueChange={setSpeechToTextEnabled}
-              />
-            }
-            showChevron={false}
-          />
-          {speechToTextEnabled &&
-            WHISPER_MODELS.map((model) => {
-              const status = modelManager.models.find((m) => m.id === model.id);
-              const isSelected = speechToTextModel === model.id;
-              const subtitle = status?.downloading
-                ? t("settingsFeatures.speechToTextModelDownloading", {
-                    progress: Math.round(status.progress * 100),
-                  })
-                : status?.ready
-                  ? t("settingsFeatures.speechToTextModelReady")
-                  : t("settingsFeatures.speechToTextModelNotDownloaded");
-
-              return (
-                <Item
-                  key={model.id}
-                  title={model.label}
-                  subtitle={`${model.size} — ${subtitle}`}
-                  selected={isSelected}
-                  onPress={() => setSpeechToTextModel(model.id)}
-                  rightElement={
-                    isSelected ? (
-                      <Ionicons name="checkmark" size={22} color="#007AFF" />
-                    ) : undefined
-                  }
-                  showChevron={false}
-                />
-              );
-            })}
-        </ItemGroup>
-      )}
 
       {/* Web-only Features */}
       {Platform.OS === "web" && (

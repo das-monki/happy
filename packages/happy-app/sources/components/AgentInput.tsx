@@ -27,6 +27,8 @@ import { TextInputState, MultiTextInputHandle } from "./MultiTextInput";
 import { applySuggestion } from "./autocomplete/applySuggestion";
 import { GitStatusBadge, useHasMeaningfulGitStatus } from "./GitStatusBadge";
 import { STTButton } from "./STTButton";
+import { STTWaveform } from "./STTWaveform";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSetting } from "@/sync/storage";
 import { hackMode, hackModes } from "@/sync/modeHacks";
@@ -488,7 +490,7 @@ export const AgentInput = React.memo(
       [suggestions, inputState, props.autocompletePrefixes],
     );
 
-    // Speech-to-text callback: append transcribed text to current input
+    // Speech-to-text: lift hook here, pass presentational props to STTButton
     const handleSTTTranscription = React.useCallback(
       (text: string) => {
         const current = props.value;
@@ -498,6 +500,7 @@ export const AgentInput = React.memo(
       },
       [props.value, props.onChangeText],
     );
+    const stt = useSpeechToText({ onTranscription: handleSTTTranscription });
 
     // Settings modal state
     const [showSettings, setShowSettings] = React.useState(false);
@@ -1215,6 +1218,28 @@ export const AgentInput = React.memo(
                   }}
                 >
                   <View style={styles.actionButtonsLeft}>
+                    {stt.state === "recording" || stt.state === "transcribing" ? (
+                      <>
+                        <Pressable
+                          onPress={stt.cancel}
+                          hitSlop={{ top: 5, bottom: 10, left: 5, right: 5 }}
+                          style={(p) => ({
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 32,
+                            height: 32,
+                            opacity: p.pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <Ionicons name="close-circle" size={28} color={theme.colors.textSecondary} />
+                        </Pressable>
+                        <STTWaveform
+                          level={stt.audioLevel}
+                          isRecording={stt.state === "recording"}
+                        />
+                      </>
+                    ) : (
+                    <>
                     {/* Settings button */}
                     {props.onPermissionModeChange && (
                       <Pressable
@@ -1370,11 +1395,16 @@ export const AgentInput = React.memo(
                       sessionId={props.sessionId}
                       onPress={props.onFileViewerPress}
                     />
-
+                    </>
+                    )}
                   </View>
 
                   {/* Speech-to-Text Button */}
-                  <STTButton onTranscription={handleSTTTranscription} />
+                  <STTButton
+                    state={stt.state}
+                    enabled={stt.enabled}
+                    onToggle={stt.toggle}
+                  />
 
                   {/* Send/Voice button - aligned with first row */}
                   <View

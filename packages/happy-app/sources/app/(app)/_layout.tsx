@@ -124,6 +124,12 @@ export default function RootLayout() {
                 }}
             />
             <Stack.Screen
+                name="settings/voice/stt"
+                options={{
+                    headerTitle: t('settingsSTT.title'),
+                }}
+            />
+            <Stack.Screen
                 name="terminal/connect"
                 options={{
                     headerTitle: t('navigation.connectTerminal'),
