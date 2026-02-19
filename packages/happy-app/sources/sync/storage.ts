@@ -1319,10 +1319,10 @@ export function useTaskState(taskId: string): TaskState {
         if (task.status === 'completed') return 'completed';
         if (task.status === 'failed') return 'failed';
 
-        const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === taskId);
-        if (linkedSessions.length === 0) return 'pending';
+        const activeSessions = Object.values(state.sessions).filter(s => s.taskId === taskId && s.active);
+        if (activeSessions.length === 0) return 'pending';
 
-        const hasThinking = linkedSessions.some(s => s.active && s.thinking);
+        const hasThinking = activeSessions.some(s => s.thinking);
         if (hasThinking) return 'running';
 
         return 'waiting_input';
@@ -1353,9 +1353,9 @@ export function useWaitingTasks(): DecryptedTask[] {
         return Object.values(state.tasks).filter(task => {
             if (task.archived) return false;
             if (task.status === 'completed' || task.status === 'failed') return false;
-            const linkedSessions = Object.values(state.sessions).filter(s => s.taskId === task.id);
-            if (linkedSessions.length === 0) return false;
-            return linkedSessions.every(s => !s.thinking);
+            const activeSessions = Object.values(state.sessions).filter(s => s.taskId === task.id && s.active);
+            if (activeSessions.length === 0) return false;
+            return activeSessions.every(s => !s.thinking);
         }).sort((a, b) => b.updatedAt - a.updatedAt);
     }));
 }

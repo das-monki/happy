@@ -110,7 +110,7 @@ const WaitingTaskRow = React.memo(function WaitingTaskRow({
     const project = projectName(task);
 
     const idleSessions = React.useMemo(
-        () => linkedSessions.filter(s => !s.thinking),
+        () => linkedSessions.filter(s => s.active && !s.thinking),
         [linkedSessions],
     );
 
