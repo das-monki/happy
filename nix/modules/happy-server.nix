@@ -183,30 +183,47 @@ in
       ++ lib.optional cfg.database.createLocally "postgresql.service"
       ++ lib.optional cfg.redis.createLocally "redis-happy.service"
       ++ lib.optional cfg.minio.createLocally "minio.service";
+
+      environment = {
+        NODE_ENV = "production";
+        PORT = toString cfg.port;
+        DATABASE_URL = "postgresql://${cfg.database.user}@localhost/${cfg.database.name}";
+      }
+      // lib.optionalAttrs cfg.redis.createLocally {
+        REDIS_URL = "redis://localhost:6379";
+      }
+      // lib.optionalAttrs cfg.minio.createLocally {
+        S3_HOST = "127.0.0.1";
+        S3_PORT = "9000";
+        S3_USE_SSL = "false";
+        S3_BUCKET = cfg.minio.bucket;
+        S3_PUBLIC_URL = "http://127.0.0.1:9000/${cfg.minio.bucket}";
+      };
+
+      script = ''
+        ${lib.optionalString (cfg.seedFile != null) ''
+          export HANDY_MASTER_SECRET="$(cat ${cfg.seedFile})"
+        ''}
+
+        ${lib.optionalString (cfg.minio.createLocally && cfg.minio.rootCredentialsFile != null) ''
+          source ${cfg.minio.rootCredentialsFile}
+          export S3_ACCESS_KEY="$MINIO_ROOT_USER"
+          export S3_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+        ''}
+
+        ${lib.optionalString (cfg.environmentFile != null) ''
+          set -a
+          source ${cfg.environmentFile}
+          set +a
+        ''}
+
+        exec ${cfg.package}/bin/happy-server
+      '';
+
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${cfg.package}/bin/happy-server";
         Restart = "on-failure";
         RestartSec = 5;
-
-        # Environment
-        Environment = [
-          "NODE_ENV=production"
-          "PORT=${toString cfg.port}"
-          "DATABASE_URL=postgresql://${cfg.database.user}@localhost/${cfg.database.name}"
-        ]
-        ++ lib.optional cfg.redis.createLocally "REDIS_URL=redis://localhost:6379"
-        ++ lib.optionals cfg.minio.createLocally [
-          "S3_HOST=127.0.0.1"
-          "S3_PORT=9000"
-          "S3_USE_SSL=false"
-          "S3_BUCKET=${cfg.minio.bucket}"
-          "S3_PUBLIC_URL=http://127.0.0.1:9000/${cfg.minio.bucket}"
-        ];
-
-        EnvironmentFile =
-          lib.optional (cfg.seedFile != null) cfg.seedFile
-          ++ lib.optional (cfg.environmentFile != null) cfg.environmentFile;
 
         # Hardening
         DynamicUser = true;
