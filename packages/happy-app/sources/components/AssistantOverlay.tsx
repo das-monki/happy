@@ -18,6 +18,7 @@ import {
   Platform,
   Modal as RNModal,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from "react-native";
 import {
   useReanimatedKeyboardAnimation,
@@ -36,10 +37,21 @@ import { MessageView } from "./MessageView";
 import { StatusDot } from "./StatusDot";
 import { STTButton } from "./STTButton";
 import { STTWaveform } from "./STTWaveform";
+import { FloatingOverlay } from "./FloatingOverlay";
+import {
+  getAvailablePermissionModes,
+  getAvailableModels,
+  getDefaultPermissionModeKey,
+  getDefaultModelKey,
+  resolveCurrentOption,
+} from "./modelModeOptions";
+import type { PermissionMode, ModelMode } from "./modelModeOptions";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useCLIDetection } from "@/hooks/useCLIDetection";
 import { Modal } from "@/modal";
 import { t } from "@/text";
-import { storage } from "@/sync/storage";
+import { storage, useSetting } from "@/sync/storage";
+import { sync } from "@/sync/sync";
 import { useShallow } from "zustand/react/shallow";
 import type { AssistantSession } from "@/hooks/useAssistantSession";
 import type { Message } from "@/sync/typesMessage";
@@ -58,6 +70,87 @@ export const AssistantOverlay = React.memo(
     const safeArea = useSafeAreaInsets();
     const [inputText, setInputText] = React.useState("");
     const inputRef = React.useRef<TextInput>(null);
+
+    // Agent settings — visible when no session is active
+    const experimentsEnabled = useSetting("experiments");
+    const lastUsedPermissionMode = useSetting("lastUsedPermissionMode");
+    const lastUsedModelMode = useSetting("lastUsedModelMode");
+    const cliAvailability = useCLIDetection(assistant.onlineMachineId);
+
+    const [showSettings, setShowSettings] = React.useState(false);
+
+    const handleAgentTypeClick = React.useCallback(() => {
+      const order: Array<"claude" | "codex" | "gemini"> = experimentsEnabled
+        ? ["claude", "codex", "gemini"]
+        : ["claude", "codex"];
+      assistant.setAgent(
+        (() => {
+          const currentIdx = order.indexOf(assistant.agent);
+          for (let i = 1; i <= order.length; i++) {
+            const candidate = order[(currentIdx + i) % order.length];
+            if (cliAvailability[candidate] !== false) return candidate;
+          }
+          return assistant.agent;
+        })(),
+      );
+    }, [experimentsEnabled, cliAvailability, assistant]);
+
+    const availableModes = React.useMemo(
+      () => getAvailablePermissionModes(assistant.agent, null, t),
+      [assistant.agent],
+    );
+    const availableModels = React.useMemo(
+      () => getAvailableModels(assistant.agent, null, t),
+      [assistant.agent],
+    );
+
+    const [selectedPermissionMode, setSelectedPermissionMode] =
+      React.useState<PermissionMode>(
+        () =>
+          resolveCurrentOption(availableModes, [
+            lastUsedPermissionMode,
+            getDefaultPermissionModeKey(assistant.agent),
+          ]) ?? availableModes[0],
+      );
+    const [selectedModelMode, setSelectedModelMode] =
+      React.useState<ModelMode>(
+        () =>
+          resolveCurrentOption(availableModels, [
+            lastUsedModelMode,
+            getDefaultModelKey(assistant.agent),
+          ]) ?? availableModels[0],
+      );
+
+    // Reset permission mode & model when agent type changes
+    React.useEffect(() => {
+      setSelectedPermissionMode(
+        resolveCurrentOption(availableModes, [
+          getDefaultPermissionModeKey(assistant.agent),
+        ]) ?? availableModes[0],
+      );
+      setSelectedModelMode(
+        resolveCurrentOption(availableModels, [
+          getDefaultModelKey(assistant.agent),
+        ]) ?? availableModels[0],
+      );
+    }, [assistant.agent, availableModes, availableModels]);
+
+    // Close settings overlay when session starts
+    React.useEffect(() => {
+      if (assistant.sessionId) setShowSettings(false);
+    }, [assistant.sessionId]);
+
+    const handleSpawn = React.useCallback(() => {
+      assistant.spawn(
+        selectedPermissionMode.key,
+        selectedModelMode?.key ?? null,
+      );
+      sync.applySettings({
+        lastUsedAgent: assistant.agent,
+        lastUsedPermissionMode: selectedPermissionMode.key,
+        lastUsedModelMode: selectedModelMode?.key ?? null,
+      });
+    }, [assistant, selectedPermissionMode, selectedModelMode]);
 
     // Keyboard animation (same approach as AgentContentView.ios.tsx)
     const keyboard = useReanimatedKeyboardAnimation();
@@ -219,9 +312,290 @@ export const AssistantOverlay = React.memo(
                 title={t("assistant.emptyTitle")}
                 description={t("assistant.emptyDescription")}
                 actionLabel={t("assistant.startAssistant")}
-                onAction={assistant.spawn}
+                onAction={handleSpawn}
                 loading={assistant.spawning}
-              />
+              >
+                {/* Agent type & settings row */}
+                <View style={{ position: "relative", width: "100%", marginTop: 20 }}>
+                  {showSettings && (
+                    <>
+                      <TouchableWithoutFeedback
+                        onPress={() => setShowSettings(false)}
+                      >
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: -1000,
+                            left: -1000,
+                            right: -1000,
+                            bottom: -1000,
+                            zIndex: 999,
+                          }}
+                        />
+                      </TouchableWithoutFeedback>
+                      <View
+                        style={{
+                          position: "absolute",
+                          bottom: "100%",
+                          left: 0,
+                          right: 0,
+                          marginBottom: 4,
+                          zIndex: 1000,
+                        }}
+                      >
+                        <FloatingOverlay maxHeight={300}>
+                          {/* Permission Mode */}
+                          <View style={{ paddingVertical: 8 }}>
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: "600",
+                                color: theme.colors.textSecondary,
+                                paddingHorizontal: 16,
+                                paddingBottom: 4,
+                              }}
+                            >
+                              {t("agentInput.permissionMode.title")}
+                            </Text>
+                            {availableModes.map((mode) => {
+                              const isSelected =
+                                selectedPermissionMode.key === mode.key;
+                              return (
+                                <Pressable
+                                  key={mode.key}
+                                  onPress={() =>
+                                    setSelectedPermissionMode(mode)
+                                  }
+                                  style={({ pressed }) => ({
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 8,
+                                    backgroundColor: pressed
+                                      ? theme.colors.surfaceRipple
+                                      : "transparent",
+                                  })}
+                                >
+                                  <View
+                                    style={{
+                                      width: 16,
+                                      height: 16,
+                                      borderRadius: 8,
+                                      borderWidth: 2,
+                                      borderColor: isSelected
+                                        ? theme.colors.radio.active
+                                        : theme.colors.radio.inactive,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      marginRight: 12,
+                                    }}
+                                  >
+                                    {isSelected && (
+                                      <View
+                                        style={{
+                                          width: 6,
+                                          height: 6,
+                                          borderRadius: 3,
+                                          backgroundColor:
+                                            theme.colors.radio.dot,
+                                        }}
+                                      />
+                                    )}
+                                  </View>
+                                  <Text
+                                    style={{
+                                      flex: 1,
+                                      fontSize: 14,
+                                      color: isSelected
+                                        ? theme.colors.radio.active
+                                        : theme.colors.text,
+                                    }}
+                                    numberOfLines={1}
+                                  >
+                                    {mode.name}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                          <View
+                            style={{
+                              height: 1,
+                              backgroundColor: theme.colors.divider,
+                              marginHorizontal: 16,
+                            }}
+                          />
+                          {/* Model */}
+                          <View style={{ paddingVertical: 8 }}>
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: "600",
+                                color: theme.colors.textSecondary,
+                                paddingHorizontal: 16,
+                                paddingBottom: 4,
+                              }}
+                            >
+                              {t("agentInput.model.title")}
+                            </Text>
+                            {availableModels.map((model) => {
+                              const isSelected =
+                                selectedModelMode.key === model.key;
+                              return (
+                                <Pressable
+                                  key={model.key}
+                                  onPress={() => setSelectedModelMode(model)}
+                                  style={({ pressed }) => ({
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 8,
+                                    backgroundColor: pressed
+                                      ? theme.colors.surfaceRipple
+                                      : "transparent",
+                                  })}
+                                >
+                                  <View
+                                    style={{
+                                      width: 16,
+                                      height: 16,
+                                      borderRadius: 8,
+                                      borderWidth: 2,
+                                      borderColor: isSelected
+                                        ? theme.colors.radio.active
+                                        : theme.colors.radio.inactive,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      marginRight: 12,
+                                    }}
+                                  >
+                                    {isSelected && (
+                                      <View
+                                        style={{
+                                          width: 6,
+                                          height: 6,
+                                          borderRadius: 3,
+                                          backgroundColor:
+                                            theme.colors.radio.dot,
+                                        }}
+                                      />
+                                    )}
+                                  </View>
+                                  <View style={{ flex: 1 }}>
+                                    <Text
+                                      style={{
+                                        fontSize: 14,
+                                        color: isSelected
+                                          ? theme.colors.radio.active
+                                          : theme.colors.text,
+                                      }}
+                                      numberOfLines={1}
+                                    >
+                                      {model.name}
+                                    </Text>
+                                    {model.description ? (
+                                      <Text
+                                        style={{
+                                          fontSize: 11,
+                                          color: theme.colors.textSecondary,
+                                        }}
+                                        numberOfLines={1}
+                                      >
+                                        {model.description}
+                                      </Text>
+                                    ) : null}
+                                  </View>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        </FloatingOverlay>
+                      </View>
+                    </>
+                  )}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <Pressable
+                      onPress={handleAgentTypeClick}
+                      style={({ pressed }) => ({
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 16,
+                        opacity: pressed ? 0.7 : 1,
+                        gap: 5,
+                      })}
+                    >
+                      <Ionicons
+                        name="hardware-chip-outline"
+                        size={14}
+                        color={
+                          cliAvailability[assistant.agent] === null
+                            ? theme.colors.textSecondary
+                            : cliAvailability[assistant.agent]
+                              ? theme.colors.success
+                              : theme.colors.textDestructive
+                        }
+                      />
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: "600",
+                          color:
+                            cliAvailability[assistant.agent] === null
+                              ? theme.colors.textSecondary
+                              : cliAvailability[assistant.agent]
+                                ? theme.colors.success
+                                : theme.colors.textDestructive,
+                        }}
+                      >
+                        {assistant.agent === "claude"
+                          ? t("agentInput.agent.claude")
+                          : assistant.agent === "codex"
+                            ? t("agentInput.agent.codex")
+                            : t("agentInput.agent.gemini")}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setShowSettings((prev) => !prev)}
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 16,
+                        opacity: pressed ? 0.7 : 1,
+                        gap: 5,
+                        minWidth: 0,
+                      })}
+                    >
+                      <Ionicons
+                        name="settings-outline"
+                        size={14}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: theme.colors.textSecondary,
+                          flex: 1,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {selectedPermissionMode.name} ·{" "}
+                        {selectedModelMode.name}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </EmptyState>
             ) : showEmptyState &&
               (assistant.status === "spawning" || assistant.spawning) ? (
               <EmptyState
@@ -453,12 +827,14 @@ const EmptyState = React.memo(
     actionLabel,
     onAction,
     loading,
+    children,
   }: {
     title: string;
     description: string;
     actionLabel?: string;
     onAction?: () => void;
     loading?: boolean;
+    children?: React.ReactNode;
   }) => {
     const { theme } = useUnistyles();
     return (
@@ -479,6 +855,7 @@ const EmptyState = React.memo(
         >
           {description}
         </Text>
+        {children}
         {loading && (
           <ActivityIndicator
             style={{ marginTop: 16 }}

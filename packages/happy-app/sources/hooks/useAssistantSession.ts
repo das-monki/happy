@@ -3,7 +3,8 @@
  *
  * Handles spawning a hidden CLI session on the first online machine,
  * tracking session messages/status, sending messages, and clearing
- * (kill + delete + respawn) the conversation.
+ * (kill + delete) the conversation. After clear the user returns to
+ * idle so agent/mode settings are visible again.
  */
 import * as React from "react";
 import {
@@ -48,7 +49,8 @@ export interface AssistantSession {
   metadata: Metadata | null;
   agent: "claude" | "codex" | "gemini";
   setAgent: (agent: "claude" | "codex" | "gemini") => void;
-  spawn: () => void;
+  onlineMachineId: string | null;
+  spawn: (permissionModeKey?: string, modelModeKey?: string | null) => void;
   spawning: boolean;
   send: (text: string) => void;
   abort: () => void;
@@ -87,7 +89,11 @@ export function useAssistantSession(): AssistantSession {
     }
   }, [sessionId, session]);
 
-  // Spawn action
+  // Spawn action — accepts optional permission/model mode keys to apply after creation
+  const spawnArgsRef = React.useRef<{
+    permissionModeKey?: string;
+    modelModeKey?: string | null;
+  }>({});
   const [spawning, doSpawn] = useHappyAction(
     React.useCallback(async () => {
       if (!onlineMachine) return;
@@ -104,11 +110,30 @@ export function useAssistantSession(): AssistantSession {
       });
 
       if (result.type === "success") {
+        const { permissionModeKey, modelModeKey } = spawnArgsRef.current;
+        if (permissionModeKey) {
+          storage
+            .getState()
+            .updateSessionPermissionMode(result.sessionId, permissionModeKey);
+        }
+        if (modelModeKey) {
+          storage
+            .getState()
+            .updateSessionModelMode(result.sessionId, modelModeKey);
+        }
         sync.applySettings({ assistantSessionId: result.sessionId });
       } else if (result.type === "error") {
         throw new Error(result.errorMessage);
       }
     }, [onlineMachine, agent]),
+  );
+
+  const spawn = React.useCallback(
+    (permissionModeKey?: string, modelModeKey?: string | null) => {
+      spawnArgsRef.current = { permissionModeKey, modelModeKey };
+      doSpawn();
+    },
+    [doSpawn],
   );
 
   // Send message
@@ -128,7 +153,7 @@ export function useAssistantSession(): AssistantSession {
     }, [sessionId]),
   );
 
-  // Clear: kill + delete + respawn
+  // Clear: kill + delete, then return to idle so settings are visible again
   const [clearing, doClear] = useHappyAction(
     React.useCallback(async () => {
       const currentId = sessionId;
@@ -138,27 +163,9 @@ export function useAssistantSession(): AssistantSession {
         // Remove session from local storage so it vanishes from UI immediately
         storage.getState().deleteSession(currentId);
       }
-      // Clear the setting
+      // Clear the setting — user returns to idle state with settings visible
       sync.applySettings({ assistantSessionId: null });
-
-      // Auto-respawn
-      if (!onlineMachine) return;
-      const homeDir = onlineMachine.metadata?.happyHomeDir ?? "~/.happy";
-      const directory = homeDir + "/assistant/";
-
-      const result = await machineSpawnNewSession({
-        machineId: onlineMachine.id,
-        directory,
-        approvedNewDirectoryCreation: true,
-        agent,
-        isAssistant: true,
-        agentSystemPrompt: buildAssistantPrompt(),
-      });
-
-      if (result.type === "success") {
-        sync.applySettings({ assistantSessionId: result.sessionId });
-      }
-    }, [sessionId, onlineMachine, agent]),
+    }, [sessionId]),
   );
 
   return {
@@ -168,7 +175,8 @@ export function useAssistantSession(): AssistantSession {
     metadata: session?.metadata ?? null,
     agent,
     setAgent,
-    spawn: doSpawn,
+    onlineMachineId: onlineMachine?.id ?? null,
+    spawn,
     spawning,
     send,
     abort: doAbort,
