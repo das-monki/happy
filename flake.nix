@@ -22,7 +22,13 @@
       imports = [
         inputs.devshell.flakeModule
         ./nix/modules/devshell.nix
+        ./nix/modules/packages.nix
       ];
+
+      flake = {
+        nixosModules.happy-server = ./nix/modules/happy-server.nix;
+        nixosModules.default = self.nixosModules.happy-server;
+      };
 
       perSystem =
         {
