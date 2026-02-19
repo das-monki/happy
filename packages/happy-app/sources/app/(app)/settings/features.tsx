@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Item } from "@/components/Item";
 import { ItemGroup } from "@/components/ItemGroup";
 import { ItemList } from "@/components/ItemList";
@@ -12,6 +13,7 @@ import {
 } from "@/hooks/useWhisperModelManager";
 
 export default function FeaturesSettingsScreen() {
+  const router = useRouter();
   const [experiments, setExperiments] = useSettingMutable("experiments");
   const [agentInputEnterToSend, setAgentInputEnterToSend] = useSettingMutable(
     "agentInputEnterToSend",
@@ -214,6 +216,40 @@ export default function FeaturesSettingsScreen() {
             />
           }
           showChevron={false}
+        />
+        <Item
+          title={t("settingsFeatures.assistantAgentPrompt")}
+          subtitle={t("settingsFeatures.assistantAgentPromptSubtitle")}
+          icon={
+            <Ionicons
+              name="document-text-outline"
+              size={29}
+              color="#007AFF"
+            />
+          }
+          onPress={() =>
+            router.push(
+              "/settings/assistant-prompt?field=assistantAgentPrompt" as any,
+            )
+          }
+          showChevron={true}
+        />
+        <Item
+          title={t("settingsFeatures.assistantSoulPrompt")}
+          subtitle={t("settingsFeatures.assistantSoulPromptSubtitle")}
+          icon={
+            <Ionicons
+              name="document-text-outline"
+              size={29}
+              color="#AF52DE"
+            />
+          }
+          onPress={() =>
+            router.push(
+              "/settings/assistant-prompt?field=assistantSoulPrompt" as any,
+            )
+          }
+          showChevron={true}
         />
       </ItemGroup>
     </ItemList>

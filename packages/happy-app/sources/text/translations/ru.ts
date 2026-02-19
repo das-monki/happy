@@ -325,6 +325,10 @@ export const ru: TranslationStructure = {
     assistantAutoApprove: "Автоодобрение разрешений",
     assistantAutoApproveDescription:
       "Когда включено, ассистент может автоматически одобрять или отклонять запросы на разрешения в ваших сессиях. Когда выключено, вы должны одобрять разрешения вручную.",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "Инструкции агента и использование инструментов",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "Личность и поведение",
   },
 
   errors: {

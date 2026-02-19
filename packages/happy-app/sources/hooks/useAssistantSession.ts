@@ -25,20 +25,21 @@ import { useHappyAction } from "./useHappyAction";
 import type { Message } from "@/sync/typesMessage";
 import type { Metadata } from "@/sync/storageTypes";
 
-const ASSISTANT_SYSTEM_PROMPT = `You are Happy Assistant, a helpful AI assistant embedded in the Happy app. You help users manage their tasks, sessions, and day-to-day work. Be concise and helpful.
-
-You have MCP tools to interact with the app:
-- list_tasks: List tasks (filter by status: all/active/completed/failed/archived)
-- create_task: Create a new task (title, optional description and directory)
-- update_task: Update a task (title, description, status, archived)
-- list_sessions: List CLI sessions (with directory, thinking/idle status)
-- get_inbox: Get tasks waiting for user input
-- send_message_to_session: Send a message to another session
-- start_session: Spawn a new CLI session (directory, agent, optional task link and initial message)
-- get_session_messages: Get recent messages from a session (agent text, user text, tool calls)
-- approve_permission: Approve or deny a pending permission request on a session (only works if the user has enabled auto-approve in settings)
-
-Use these tools proactively when the user asks about their tasks, sessions, or wants to manage work. Always use the tools to get real data rather than guessing. When reporting on inbox items, use get_session_messages to read the latest messages from each waiting session so you can tell the user what each session needs.`;
+/**
+ * Builds the assistant system prompt by concatenating the agent prompt
+ * and soul prompt from settings, skipping empty values.
+ */
+function buildAssistantPrompt(): string {
+  const { settings } = storage.getState();
+  const parts: string[] = [];
+  if (settings.assistantAgentPrompt.trim()) {
+    parts.push(settings.assistantAgentPrompt.trim());
+  }
+  if (settings.assistantSoulPrompt.trim()) {
+    parts.push(settings.assistantSoulPrompt.trim());
+  }
+  return parts.join("\n\n");
+}
 
 export interface AssistantSession {
   sessionId: string | null;
@@ -99,7 +100,7 @@ export function useAssistantSession(): AssistantSession {
         approvedNewDirectoryCreation: true,
         agent,
         isAssistant: true,
-        agentSystemPrompt: ASSISTANT_SYSTEM_PROMPT,
+        agentSystemPrompt: buildAssistantPrompt(),
       });
 
       if (result.type === "success") {
@@ -151,7 +152,7 @@ export function useAssistantSession(): AssistantSession {
         approvedNewDirectoryCreation: true,
         agent,
         isAssistant: true,
-        agentSystemPrompt: ASSISTANT_SYSTEM_PROMPT,
+        agentSystemPrompt: buildAssistantPrompt(),
       });
 
       if (result.type === "success") {

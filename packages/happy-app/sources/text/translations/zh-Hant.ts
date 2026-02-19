@@ -330,6 +330,10 @@ export const zhHant: TranslationStructure = {
     assistantAutoApprove: "自動核准權限",
     assistantAutoApproveDescription:
       "啟用後，助理可以自動核准或拒絕您工作階段中的權限請求。停用後，您必須手動核准權限。",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "代理指令和工具使用",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "個性與行為",
   },
 
   errors: {

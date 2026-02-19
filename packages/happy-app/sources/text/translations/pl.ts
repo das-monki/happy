@@ -354,6 +354,10 @@ export const pl: TranslationStructure = {
     assistantAutoApprove: "Automatyczne zatwierdzanie uprawnień",
     assistantAutoApproveDescription:
       "Po włączeniu asystent może automatycznie zatwierdzać lub odrzucać żądania uprawnień w Twoich sesjach. Po wyłączeniu musisz zatwierdzać uprawnienia ręcznie.",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "Instrukcje agenta i użycie narzędzi",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "Osobowość i zachowanie",
   },
 
   errors: {

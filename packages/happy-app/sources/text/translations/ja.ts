@@ -406,6 +406,10 @@ export const ja: TranslationStructure = {
     assistantAutoApprove: "権限の自動承認",
     assistantAutoApproveDescription:
       "有効にすると、アシスタントがセッションの権限リクエストを自動的に承認または拒否できます。無効の場合、手動で権限を承認する必要があります。",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "エージェントの指示とツールの使用方法",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "性格と振る舞い",
   },
 
   errors: {

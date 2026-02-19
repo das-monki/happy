@@ -330,6 +330,10 @@ export const zhHans: TranslationStructure = {
     assistantAutoApprove: "自动审批权限",
     assistantAutoApproveDescription:
       "启用后，助手可以自动批准或拒绝您会话中的权限请求。禁用后，您必须手动审批权限。",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "代理指令和工具使用",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "个性与行为",
   },
 
   errors: {

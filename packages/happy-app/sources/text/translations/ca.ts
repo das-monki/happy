@@ -344,6 +344,10 @@ export const ca: TranslationStructure = {
     assistantAutoApprove: "Aprovació automàtica de permisos",
     assistantAutoApproveDescription:
       "Quan està activat, l'assistent pot aprovar o denegar automàticament les sol·licituds de permisos a les teves sessions. Quan està desactivat, has d'aprovar els permisos manualment.",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "Instruccions de l'agent i ús d'eines",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "Personalitat i comportament",
   },
 
   errors: {

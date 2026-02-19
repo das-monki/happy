@@ -344,6 +344,10 @@ export const es: TranslationStructure = {
     assistantAutoApprove: "Aprobación automática de permisos",
     assistantAutoApproveDescription:
       "Cuando está activado, el asistente puede aprobar o denegar automáticamente las solicitudes de permisos en tus sesiones. Cuando está desactivado, debes aprobar los permisos manualmente.",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "Instrucciones del agente y uso de herramientas",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "Personalidad y comportamiento",
   },
 
   errors: {

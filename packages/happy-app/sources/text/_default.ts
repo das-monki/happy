@@ -337,6 +337,10 @@ export const en = {
     assistantAutoApprove: "Auto-approve Permissions",
     assistantAutoApproveDescription:
       "When enabled, the assistant can automatically approve or deny permission requests on your sessions. When disabled, you must approve permissions manually.",
+    assistantAgentPrompt: "AGENTS.md",
+    assistantAgentPromptSubtitle: "Agent instructions and tool usage",
+    assistantSoulPrompt: "SOUL.md",
+    assistantSoulPromptSubtitle: "Personality and behavior",
   },
 
   errors: {

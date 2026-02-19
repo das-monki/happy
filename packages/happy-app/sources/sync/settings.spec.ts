@@ -135,6 +135,8 @@ describe("settings", () => {
         assistantAgent: "claude",
         assistantSessionId: null,
         assistantAutoApprove: false,
+        assistantAgentPrompt: settingsDefaults.assistantAgentPrompt,
+        assistantSoulPrompt: "",
       };
       const delta: Partial<Settings> = {
         viewInline: true,
@@ -214,6 +216,8 @@ describe("settings", () => {
         assistantAgent: "claude",
         assistantSessionId: null,
         assistantAutoApprove: false,
+        assistantAgentPrompt: settingsDefaults.assistantAgentPrompt,
+        assistantSoulPrompt: "",
       };
       const delta: Partial<Settings> = {};
       expect(applySettings(currentSettings, delta)).toEqual(currentSettings);
@@ -256,6 +260,8 @@ describe("settings", () => {
         assistantAgent: "claude",
         assistantSessionId: null,
         assistantAutoApprove: false,
+        assistantAgentPrompt: settingsDefaults.assistantAgentPrompt,
+        assistantSoulPrompt: "",
       };
       const delta: Partial<Settings> = {
         viewInline: false,
@@ -303,6 +309,8 @@ describe("settings", () => {
         assistantAgent: "claude",
         assistantSessionId: null,
         assistantAutoApprove: false,
+        assistantAgentPrompt: settingsDefaults.assistantAgentPrompt,
+        assistantSoulPrompt: "",
       };
       expect(applySettings(currentSettings, {})).toEqual(currentSettings);
     });
@@ -359,6 +367,8 @@ describe("settings", () => {
         assistantAgent: "claude",
         assistantSessionId: null,
         assistantAutoApprove: false,
+        assistantAgentPrompt: settingsDefaults.assistantAgentPrompt,
+        assistantSoulPrompt: "",
       };
       const delta: any = {
         viewInline: false,
