@@ -44,9 +44,9 @@ const stylesheet = StyleSheet.create((theme) => ({
     },
     headerSection: {
         backgroundColor: theme.colors.groupped.background,
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 8,
+        paddingHorizontal: Platform.select({ ios: 32, default: 24 }),
+        paddingTop: Platform.select({ ios: 35, default: 16 }),
+        paddingBottom: Platform.select({ ios: 6, default: 8 }),
     },
     headerText: {
         fontSize: 14,

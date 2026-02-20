@@ -71,7 +71,7 @@ const NativeDropdownInner = React.memo(function NativeDropdownInner({
     const Host = ExpoHost;
 
     return (
-        <View>
+        <View style={{ flex: 1 }}>
             {children}
             <Host
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.02 }}
@@ -118,7 +118,7 @@ const NativeDropdownInner = React.memo(function NativeDropdownInner({
 const NativeDropdown = React.memo(function NativeDropdown(props: DirectoryFilterDropdownProps) {
     return (
         <NativeDropdownErrorBoundary fallback={<CustomDropdown {...props} />}>
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ flex: 1, alignSelf: 'stretch' }}>
                 <NativeDropdownInner {...props} />
             </View>
         </NativeDropdownErrorBoundary>
@@ -216,6 +216,8 @@ const styles = StyleSheet.create((theme) => ({
     wrapper: {
         position: 'relative',
         alignItems: 'center',
+        flex: 1,
+        alignSelf: 'stretch',
     },
     backdrop: {
         position: 'fixed' as any,

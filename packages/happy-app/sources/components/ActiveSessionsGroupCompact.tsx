@@ -26,7 +26,7 @@ import { HappyError } from '@/utils/errors';
 const stylesheet = StyleSheet.create((theme, runtime) => ({
     container: {
         backgroundColor: theme.colors.groupped.background,
-        paddingTop: 8,
+        paddingTop: Platform.select({ ios: 23, default: 4 }),
     },
     projectCard: {
         backgroundColor: theme.colors.surface,
