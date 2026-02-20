@@ -101,6 +101,7 @@
             cp -r packages/happy-cli/dist $out/lib/happy-coder/packages/happy-cli/
             cp -r packages/happy-cli/bin $out/lib/happy-coder/packages/happy-cli/
             cp -r packages/happy-cli/tools $out/lib/happy-coder/packages/happy-cli/
+            cp -r packages/happy-cli/scripts $out/lib/happy-coder/packages/happy-cli/
             cp packages/happy-cli/package.json $out/lib/happy-coder/packages/happy-cli/
 
             # Workspace node_modules (nohoisted deps)
