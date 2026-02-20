@@ -1,6 +1,7 @@
 import { Fastify } from "../types";
 import { log } from "@/utils/log";
 import { auth } from "@/app/auth/auth";
+import { db } from "@/storage/db";
 
 export function enableAuthentication(app: Fastify) {
     app.decorate('authenticate', async function (request: any, reply: any) {
@@ -17,6 +18,13 @@ export function enableAuthentication(app: Fastify) {
             if (!verified) {
                 log({ module: 'auth-decorator' }, `Auth failed - invalid token`);
                 return reply.code(401).send({ error: 'Invalid token' });
+            }
+
+            // Verify account still exists in database (e.g. after DB wipe)
+            const account = await db.account.findUnique({ where: { id: verified.userId }, select: { id: true } });
+            if (!account) {
+                log({ module: 'auth-decorator' }, `Auth failed - account not found for user: ${verified.userId}. Client must re-authenticate.`);
+                return reply.code(401).send({ error: 'Account not found. Please log out and log in again.' });
             }
 
             log({ module: 'auth-decorator' }, `Auth success - user: ${verified.userId}`);

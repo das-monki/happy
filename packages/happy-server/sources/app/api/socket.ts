@@ -4,6 +4,7 @@ import { buildMachineActivityEphemeral, ClientConnection, eventRouter } from "@/
 import { Server, Socket } from "socket.io";
 import { log } from "@/utils/log";
 import { auth } from "@/app/auth/auth";
+import { db } from "@/storage/db";
 import { decrementWebSocketConnection, incrementWebSocketConnection, websocketEventsCounter } from "../monitoring/metrics2";
 import { usageHandler } from "./socket/usageHandler";
 import { rpcHandler } from "./socket/rpcHandler";
@@ -66,6 +67,15 @@ export function startSocket(app: Fastify) {
         if (!verified) {
             log({ module: 'websocket' }, `Invalid token provided`);
             socket.emit('error', { message: 'Invalid authentication token' });
+            socket.disconnect();
+            return;
+        }
+
+        // Verify account still exists in database (e.g. after DB wipe)
+        const account = await db.account.findUnique({ where: { id: verified.userId }, select: { id: true } });
+        if (!account) {
+            log({ module: 'websocket' }, `Account not found for user: ${verified.userId}. Client must re-authenticate.`);
+            socket.emit('error', { message: 'Account not found. Please log out and log in again.' });
             socket.disconnect();
             return;
         }
