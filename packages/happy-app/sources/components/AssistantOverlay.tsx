@@ -276,11 +276,13 @@ export const AssistantOverlay = React.memo(
             { backgroundColor: theme.colors.surface },
           ]}
         >
-          {/* Header */}
+          {/* Header — zIndex ensures touches reach the close button even when
+              the keyboard-animated body overlaps (translateY shifts it upward) */}
           <View
             style={[
               styles.header,
               {
+                zIndex: 1,
                 paddingTop: Platform.OS === "ios" ? 16 : safeArea.top + 8,
                 borderBottomColor: theme.colors.divider,
               },
